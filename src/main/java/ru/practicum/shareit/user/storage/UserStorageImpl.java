@@ -1,13 +1,15 @@
 package ru.practicum.shareit.user.storage;
 
-import ru.practicum.shareit.item.exceptions.EntityNotFoundException;
-import ru.practicum.shareit.item.exceptions.ValidationException;
+import org.springframework.stereotype.Component;
+import ru.practicum.shareit.exceptions.EntityNotFoundException;
+import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+@Component
 public class UserStorageImpl implements UserStorage {
 
     private Integer increment = 0;
@@ -33,7 +35,7 @@ public class UserStorageImpl implements UserStorage {
         validateEmail(user);
         user.setId(++increment);
         users.put(user.getId(), user);
-        return user;
+        return users.get(user.getId());
     }
 
     @Override

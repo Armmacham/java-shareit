@@ -1,8 +1,10 @@
 package ru.practicum.shareit.item.storage;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.practicum.shareit.item.exceptions.EntityNotFoundException;
+import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,13 +12,18 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@RequiredArgsConstructor
 public class ItemStorageImpl implements ItemStorage {
 
-    private Integer itemId = 0;
+    private Integer increment = 0;
     private final Map<Integer, Item> items = new HashMap<>();
+    private final UserStorage userStorage;
 
     @Override
     public Item getItem(Integer id) {
+        if (!items.containsKey(id)) {
+            throw new EntityNotFoundException(String.format("Предмет с id номером %d не найден", id));
+        }
         return items.get(id);
     }
 
@@ -27,18 +34,22 @@ public class ItemStorageImpl implements ItemStorage {
 
     @Override
     public Item addItem(Item item) {
-        item.setId(itemId++);
+        item.setId(++increment);
         items.put(item.getId(), item);
         return item;
     }
 
     @Override
     public Item updateItem(Item item) {
-        if (!items.containsKey(item.getId())) {
+        Integer userId = item.getOwner().getId();
+        Integer itemId = item.getId();
+        if (!items.containsKey(itemId)) {
             throw new EntityNotFoundException(String.format("Предмет с id номером %d не найден", item.getId()));
+        } else if (!userStorage.getAll().contains(userId)) {
+            throw new EntityNotFoundException(String.format("Пользователь с id номером %d не найден", userId));
         }
-        items.put(item.getId(), item);
-        return items.get(item.getId());
+        items.put(itemId, item);
+        return items.get(itemId);
     }
 
     @Override

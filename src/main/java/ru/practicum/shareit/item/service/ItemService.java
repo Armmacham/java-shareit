@@ -10,9 +10,9 @@ public interface ItemService {
 
     List<ItemDTO> getAllItemsByUserId(Integer userId);
 
-    ItemDTO createItem(ItemDTO itemDto, Integer ownerId);
+    ItemDTO addItem(ItemDTO itemDto, Integer ownerId);
 
-    ItemDTO updateItem(ItemDTO itemDto, Integer itemId, Integer userId);
+    ItemDTO updateItem(ItemDTO itemDto, Integer itemId);
 
     void removeItem(Integer id);
 
