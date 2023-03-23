@@ -23,7 +23,7 @@ public class ItemDTO {
     private String description;
 
     @NotNull
-    private Boolean isAvailable;
+    private Boolean available;
 
     private User owner;
 

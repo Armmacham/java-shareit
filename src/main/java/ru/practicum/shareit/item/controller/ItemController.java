@@ -26,8 +26,8 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    public ResponseEntity<ItemDTO> updateItem(@RequestBody ItemDTO itemDto, @PathVariable Integer itemId) {
-        ItemDTO itemUpdated = itemService.updateItem(itemDto, itemId);
+    public ResponseEntity<ItemDTO> updateItem(@RequestBody ItemDTO itemDto, @PathVariable Integer itemId, @RequestHeader(userIdHeader) Integer userId) {
+        ItemDTO itemUpdated = itemService.updateItem(itemDto, itemId, userId);
         return ResponseEntity.ok().body(itemUpdated);
     }
 

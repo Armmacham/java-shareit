@@ -20,7 +20,7 @@ public class UserStorageImpl implements UserStorage {
     public User get(Integer id) {
         if (!users.containsKey(id)) {
             throw new EntityNotFoundException(
-                    String.format("Пользователь с id номером % не найден", id));
+                    String.format("Пользователь с id номером %d не найден", id));
         }
         return users.get(id);
     }
@@ -40,14 +40,22 @@ public class UserStorageImpl implements UserStorage {
 
     @Override
     public User patch(User user) {
-        return null;
+        validateEmail(user);
+        User userToUpdate = users.get(user.getId());
+        if (user.getEmail() != null) {
+            userToUpdate.setEmail(user.getEmail());
+        }
+        if (user.getName() != null) {
+            userToUpdate.setName(user.getName());
+        }
+        return userToUpdate;
     }
 
     @Override
     public Boolean delete(Integer id) {
         if (!users.containsKey(id)) {
             throw new EntityNotFoundException(
-                    String.format("Пользователь с id номером % не найден", id));
+                    String.format("Пользователь с id номером %d не найден", id));
         }
         users.remove(id);
         return true;
@@ -62,7 +70,7 @@ public class UserStorageImpl implements UserStorage {
                 )
         ) {
             throw new ValidationException(
-                    String.format("Пользователь с почтой % уже существует", user.getEmail()));
+                    String.format("Пользователь с почтой %s уже существует", user.getEmail()));
         }
     }
 }

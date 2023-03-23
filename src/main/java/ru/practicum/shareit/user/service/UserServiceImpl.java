@@ -43,8 +43,7 @@ public class UserServiceImpl implements UserService {
     public UserDTO patch(UserDTO userDto, Integer id) {
         userDto.setId(id);
         User user = userMapper.toUser(userDto);
-        userStorage.patch(user);
-        return userMapper.toUserDTO(user);
+        return userMapper.toUserDTO(userStorage.patch(user));
     }
 
     @Override

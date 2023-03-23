@@ -12,7 +12,7 @@ public interface ItemService {
 
     ItemDTO addItem(ItemDTO itemDto, Integer ownerId);
 
-    ItemDTO updateItem(ItemDTO itemDto, Integer itemId);
+    ItemDTO updateItem(ItemDTO itemDto, Integer itemId, Integer userId);
 
     void removeItem(Integer id);
 

@@ -23,7 +23,7 @@ public class ItemMapper {
                 itemDTO.getId(),
                 itemDTO.getName(),
                 itemDTO.getDescription(),
-                itemDTO.getIsAvailable(),
+                itemDTO.getAvailable(),
                 itemDTO.getOwner(),
                 itemDTO.getRequest() != null ? itemDTO.getRequest() : null
         );

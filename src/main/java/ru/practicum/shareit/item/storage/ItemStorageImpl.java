@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -45,7 +47,7 @@ public class ItemStorageImpl implements ItemStorage {
         Integer itemId = item.getId();
         if (!items.containsKey(itemId)) {
             throw new EntityNotFoundException(String.format("Предмет с id номером %d не найден", item.getId()));
-        } else if (!userStorage.getAll().contains(userId)) {
+        } else if (!userStorage.getAll().stream().map(User::getId).collect(Collectors.toList()).contains(userId)) {
             throw new EntityNotFoundException(String.format("Пользователь с id номером %d не найден", userId));
         }
         items.put(itemId, item);

@@ -7,6 +7,8 @@ import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemStorage;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,6 +23,8 @@ public class ItemServiceImpl implements ItemService {
     private final ItemMapper itemMapper;
 
     private final ItemStorage itemStorage;
+
+    private final UserStorage userStorage;
 
     @Override
     public ItemDTO getItem(Integer id) {
@@ -40,15 +44,17 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDTO addItem(ItemDTO itemDto, Integer ownerId) {
+        User user = userStorage.get(ownerId);
+        itemDto.setOwner(user);
         Item item = itemMapper.toItem(itemDto);
         return itemMapper.toItemDTO(itemStorage.addItem(item));
     }
 
     @Override
-    public ItemDTO updateItem(ItemDTO itemDto, Integer itemId) {
+        public ItemDTO updateItem(ItemDTO itemDto, Integer itemId, Integer userId) {
         Item oldItem = itemStorage.getItem(itemId);
         Item newItem  = itemMapper.toItem(itemDto);
-        if (oldItem.getOwner().getId() != newItem.getOwner().getId()) {
+        if (oldItem.getOwner().getId() != userId) {
             throw new EntityNotFoundException(String
                     .format("Предмет с id номером %d не пренадлежит пользователю", itemId));
         }
