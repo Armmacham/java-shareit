@@ -29,7 +29,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDTO getItem(Integer id) {
         return itemMapper.toItemDTO(itemStorage.getItem(id));
-
     }
 
     @Override
@@ -51,9 +50,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-        public ItemDTO updateItem(ItemDTO itemDto, Integer itemId, Integer userId) {
+    public ItemDTO updateItem(ItemDTO itemDto, Integer itemId, Integer userId) {
         Item oldItem = itemStorage.getItem(itemId);
-        Item newItem  = itemMapper.toItem(itemDto);
+        Item newItem = itemMapper.toItem(itemDto);
         if (oldItem.getOwner().getId() != userId) {
             throw new EntityNotFoundException(String
                     .format("Предмет с id номером %d не пренадлежит пользователю", itemId));
@@ -84,7 +83,7 @@ public class ItemServiceImpl implements ItemService {
         return itemStorage.getAllItems()
                 .stream()
                 .filter(i -> i.getDescription().toLowerCase().contains(keyword.toLowerCase()) && i.getAvailable())
-                .map(itemMapper :: toItemDTO)
+                .map(itemMapper::toItemDTO)
                 .collect(Collectors.toList());
     }
 }

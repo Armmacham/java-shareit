@@ -64,8 +64,8 @@ public class UserStorageImpl implements UserStorage {
     private void validateEmail(User user) {
         if (users.values()
                 .stream()
-                .anyMatch(stored -> stored.getEmail().
-                        equalsIgnoreCase(user.getEmail())
+                .anyMatch(stored -> stored.getEmail()
+                        .equalsIgnoreCase(user.getEmail())
                         && stored.getId() != user.getId()
                 )
         ) {
