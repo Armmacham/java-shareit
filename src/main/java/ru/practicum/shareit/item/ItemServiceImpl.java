@@ -1,16 +1,11 @@
-package ru.practicum.shareit.item.service;
+package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.item.dto.ItemDTO;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
-import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.storage.ItemStorage;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserStorage;
+import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserStorage;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -53,6 +48,9 @@ public class ItemServiceImpl implements ItemService {
     public ItemDTO updateItem(ItemDTO itemDto, Integer itemId, Integer userId) {
         Item oldItem = itemStorage.getItem(itemId);
         Item newItem = itemMapper.toItem(itemDto);
+        if (!itemStorage.getAllItems().stream().map(Item::getId).collect(Collectors.toList()).contains(itemId)) {
+            throw new EntityNotFoundException(String.format("Предмет с id номером %d не найден", itemId));
+        }
         if (oldItem.getOwner().getId() != userId) {
             throw new EntityNotFoundException(String
                     .format("Предмет с id номером %d не пренадлежит пользователю", itemId));
@@ -77,13 +75,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemDTO> searchItemsByDescription(String keyword) {
-        if (keyword.isBlank()) {
-            return new ArrayList<>();
-        }
-        return itemStorage.getAllItems()
-                .stream()
-                .filter(i -> i.getDescription().toLowerCase().contains(keyword.toLowerCase()) && i.getAvailable())
-                .map(itemMapper::toItemDTO)
-                .collect(Collectors.toList());
+        return itemStorage.searchItemsByDescription(keyword);
     }
 }

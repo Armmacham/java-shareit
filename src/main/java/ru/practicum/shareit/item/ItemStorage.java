@@ -1,7 +1,6 @@
-package ru.practicum.shareit.item.storage;
+package ru.practicum.shareit.item;
 
-import ru.practicum.shareit.item.model.Item;
-
+import java.util.Collection;
 import java.util.List;
 
 public interface ItemStorage {
@@ -14,4 +13,6 @@ public interface ItemStorage {
     Item updateItem(Item item);
 
     void removeItem(Integer id);
+
+    Collection<ItemDTO> searchItemsByDescription(String keyword);
 }

@@ -1,6 +1,6 @@
-package ru.practicum.shareit.user.service;
+package ru.practicum.shareit.user;
 
-import ru.practicum.shareit.user.dto.UserDTO;
+import ru.practicum.shareit.user.UserDTO;
 
 import java.util.Collection;
 
