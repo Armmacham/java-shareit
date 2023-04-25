@@ -4,15 +4,15 @@ import java.util.Collection;
 import java.util.List;
 
 public interface ItemService {
-    ItemDTO getItem(Integer id);
+    ItemCommentsDTO getItem(Long id, Long userId);
 
-    List<ItemDTO> getAllItemsByUserId(Integer userId);
+    List<ItemCommentsDTO> getAllItemsByUserId(Long userId);
 
-    ItemDTO addItem(ItemDTO itemDto, Integer ownerId);
+    ItemDTO addItem(ItemDTO itemDto, Long ownerId);
 
-    ItemDTO updateItem(ItemDTO itemDto, Integer itemId, Integer userId);
+    ItemDTO updateItem(ItemDTO itemDto, Long itemId, Long userId);
 
-    void removeItem(Integer id);
+    void removeItem(Long id);
 
     Collection<ItemDTO> searchItemsByDescription(String keyword);
 }
