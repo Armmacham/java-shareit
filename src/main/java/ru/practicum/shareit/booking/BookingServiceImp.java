@@ -3,7 +3,10 @@ package ru.practicum.shareit.booking;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.exceptions.*;
+import ru.practicum.shareit.exceptions.EntityNotFoundException;
+import ru.practicum.shareit.exceptions.IncorrectAvailableException;
+import ru.practicum.shareit.exceptions.IncorrectOwnerException;
+import ru.practicum.shareit.exceptions.IncorrectTimeException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.user.User;
@@ -12,8 +15,8 @@ import ru.practicum.shareit.user.UserRepository;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -24,22 +27,38 @@ public class BookingServiceImp implements BookingService {
     private final UserRepository userRepository;
     private final BookingMapper bookingMapper;
 
+    @Transactional
     @Override
     public BookingDTO addBooking(long bookerId, BookingInputDTO bookingInputDto) {
         validateDate(bookingInputDto);
         Booking booking = bookingMapper.fromDto(bookingInputDto);
         booking.setStatus(Status.WAITING);
         booking.setItem(itemRepository.findById(bookingInputDto.getItemId()).orElseThrow(() ->
-                new EntityNotFoundException(String.format("Предмет с id = %d не найден", bookingInputDto.getItemId()))));
+                new EntityNotFoundException(String.format("Вещь с id = %d не найдена", bookingInputDto.getItemId()))));
         booking.setBooker(getUserById(bookerId));
         if (booking.getItem().getOwner().getId() == bookerId) {
-            throw new EntityNotFoundException(String.format("Предмет с id = %d не найден", bookingInputDto.getItemId()));
+            throw new EntityNotFoundException(String.format("Вещь с id = %d не найдена", bookingInputDto.getItemId()));
+        }
+        if (!isIntervalsIntersect(booking)) {
+            throw new IncorrectTimeException("Введённый период бронирования конфликтует с периодами существующих бронирований");
         }
         if (!booking.getItem().getAvailable()) {
-            throw new IncorrectAvailableException(String.format("Предмет с id = %d не доступен", bookingInputDto.getItemId()));
+            throw new IncorrectAvailableException(String.format("Вещь с id = %d не доступна", bookingInputDto.getItemId()));
         }
         Booking savedBooking = bookingRepository.save(booking);
         return bookingMapper.fromEntity(savedBooking);
+    }
+
+    private boolean isIntervalsIntersect(Booking newBooking) {
+        long itemId = newBooking.getItem().getId();
+        List<BookingDTO> listOfUpcomingBookings = getAllFutureBookingsOfItem(itemId);
+        if (!listOfUpcomingBookings.isEmpty() && !listOfUpcomingBookings
+                .stream().filter(e -> e.getStart().isBefore(newBooking.getStart()) && e.getEnd().isAfter(newBooking.getEnd())
+                        || e.getStart().isAfter(newBooking.getStart()) && e.getEnd().isBefore(newBooking.getEnd()))
+                .collect(Collectors.toList()).isEmpty()) {
+            return false;
+        }
+        return true;
     }
 
     private void validateDate(BookingInputDTO bookingInputDto) {
@@ -49,31 +68,35 @@ public class BookingServiceImp implements BookingService {
                 bookingInputDto.getEnd().isBefore(LocalDateTime.now()) ||
                 bookingInputDto.getEnd().isBefore(bookingInputDto.getStart()) ||
                 bookingInputDto.getEnd().isEqual(bookingInputDto.getStart())) {
-            throw new IncorrectTimeException("");
+            throw new IncorrectTimeException("Невозможно применить даты бронирования");
         }
     }
 
+    @Transactional
     @Override
     public BookingDTO approveOrRejectBooking(long ownerId, long bookingId, boolean approved) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() ->
                 new EntityNotFoundException(String.format("Бронирования с id = %d не найдено", bookingId)));
         Item item = booking.getItem();
-        if (booking.getStatus().equals(Status.APPROVED)) {
+        long userId = item.getOwner().getId();
+        if (booking.getStatus().equals(Status.APPROVED) || booking.getStatus().equals(Status.REJECTED)) {
             if (item.getOwner().getId() == ownerId) {
-                throw new IncorrectOwnerException("");
+                throw new IncorrectOwnerException("Владелец вещи не может забронировать собственный предмет");
             }
         }
-        if (item.getOwner().getId() == ownerId) {
+        if (booking.getStart().isBefore(LocalDateTime.now())) {
+            throw new IncorrectTimeException(String.format("Дата старта брониравания с id = %d уже прошла", bookingId));
+        }
+        if (userId == ownerId) {
             booking.setStatus(approved ? Status.APPROVED : Status.REJECTED);
         } else {
-            throw new EntityNotFoundException("");
+            throw new EntityNotFoundException(String.format("Вещь с id = %d не пренадлежит пользователю с id = %d", userId, bookingId));
         }
         Booking saved = bookingRepository.save(booking);
         return bookingMapper.fromEntity(saved);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public BookingDTO getBookingInformation(long bookingId, long userId) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() ->
                 new EntityNotFoundException(String.format("Бронирования с id = %d не найдено", bookingId)));
@@ -93,7 +116,6 @@ public class BookingServiceImp implements BookingService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<BookingDTO> getAllBookingsOfCurrentUser(State state, long userId) {
         getUserById(userId);
         switch (state) {
@@ -144,26 +166,13 @@ public class BookingServiceImp implements BookingService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<BookingDTO> getAllPreviousBookingsOfItem(long itemId) {
-        return bookingRepository.findAllByItemIdAndStatusIn(itemId, List.of(Status.APPROVED))
-                .stream().filter(e -> e.getEnd().isBefore(LocalDateTime.now()))
-                .map(bookingMapper::fromEntity)
-                .sorted(Comparator.comparing(BookingDTO::getEnd).reversed())
+    public List<BookingDTO> getAllBookingsOfItemsIds(List<Long> ids) {
+        return bookingRepository.findAllByItemIdInAndStatusIn(ids, List.of(Status.APPROVED, Status.WAITING))
+                .stream().map(bookingMapper::fromEntity)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<BookingDTO> getCurrentBookingOfItem(long itemId) {
-        return bookingRepository.findAllByItemIdAndStatusIn(itemId, List.of(Status.APPROVED))
-                .stream().filter(e -> e.getStart().isBefore(LocalDateTime.now()) && e.getEnd().isAfter(LocalDateTime.now()))
-                .map(bookingMapper::fromEntity)
-                .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
-                .findFirst();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<BookingDTO> getAllBookingsOfOwner(State state, long ownerId) {
         getUserById(ownerId);
         List<Item> allByOwnerId = itemRepository.findAllByOwnerId(ownerId);

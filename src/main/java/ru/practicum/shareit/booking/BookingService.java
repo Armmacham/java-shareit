@@ -16,7 +16,5 @@ public interface BookingService {
 
     List<BookingDTO> getAllFutureBookingsOfItem(long itemId);
 
-    List<BookingDTO> getAllPreviousBookingsOfItem(long itemId);
-
-    Optional<BookingDTO> getCurrentBookingOfItem(long itemId);
+    List<BookingDTO> getAllBookingsOfItemsIds(List<Long> ids);
 }

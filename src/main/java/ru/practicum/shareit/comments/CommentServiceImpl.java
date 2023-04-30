@@ -2,6 +2,7 @@ package ru.practicum.shareit.comments;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.Status;
@@ -25,6 +26,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper commentMapper;
     private final BookingRepository bookingRepository;
 
+    @Transactional
     @Override
     public CommentDTO addComment(CommentDTO commentDTO, Long userId, Long itemId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
@@ -37,9 +39,9 @@ public class CommentServiceImpl implements CommentService {
                         e.getStatus().equals(Status.APPROVED) &&
                         e.getEnd().isBefore(LocalDateTime.now()))
                 .findAny()
-                .orElseThrow(() -> new IncorrectAvailableException(""));
+                .orElseThrow(() -> new IncorrectAvailableException(String.format("Пользователь с id = %d не брал вещь с id = %d, или период использования не завершён", userId, itemId)));
         if (item.getOwner().getId().equals(userId)) {
-            throw new IncorrectAvailableException(String.format("Предмет с id %d не пренадлежит пользователю с id %d", itemId, userId));
+            throw new IncorrectAvailableException("Владелец не может оставить отзыв на собственную вещь");
         }
         Comment comment = new Comment();
         comment.setText(commentDTO.getText());
