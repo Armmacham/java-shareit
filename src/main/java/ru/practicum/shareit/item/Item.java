@@ -3,12 +3,10 @@ package ru.practicum.shareit.item;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.comments.Comment;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.request.model.ItemRequest;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Entity
 @Data
@@ -35,10 +33,6 @@ public class Item {
 
     @OneToOne
     private ItemRequest request;
-
-   /* @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_id")
-    private List<Comment> comments;*/
 
     @Override
     public boolean equals(Object o) {
