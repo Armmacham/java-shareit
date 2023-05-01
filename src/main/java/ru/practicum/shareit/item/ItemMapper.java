@@ -2,17 +2,13 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.practicum.shareit.comments.CommentMapper;
 import ru.practicum.shareit.user.UserMapper;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class ItemMapper {
 
-    private final CommentMapper commentMapper;
     private final UserMapper userMapper;
 
     public ItemDTO toItemDTO(Item item) {
@@ -36,17 +32,12 @@ public class ItemMapper {
                 itemDTO.getAvailable(),
                 itemDTO.getOwner() != null ? userMapper.toUser(itemDTO.getOwner()) : null,
                 null
-              //  List.of()
         );
     }
 
     public ItemCommentsDTO toItemCommentDto(Item item) {
         ItemCommentsDTO itemCommentsDTO = new ItemCommentsDTO();
         itemCommentsDTO.setId(item.getId());
-      /*  itemCommentsDTO.setComments(
-                item.getComments() != null ?
-                        item.getComments().stream().map(commentMapper::toCommentDTO).collect(Collectors.toList())
-                        : List.of());*/
         itemCommentsDTO.setName(item.getName());
         itemCommentsDTO.setDescription(item.getDescription());
         itemCommentsDTO.setAvailable(item.getAvailable());

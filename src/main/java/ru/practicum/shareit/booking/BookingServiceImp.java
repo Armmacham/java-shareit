@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.exceptions.IncorrectAvailableException;
-import ru.practicum.shareit.exceptions.IncorrectOwnerException;
 import ru.practicum.shareit.exceptions.IncorrectTimeException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemRepository;
