@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookingServiceImp implements BookingService {
 
     private final BookingRepository bookingRepository;
@@ -52,10 +53,12 @@ public class BookingServiceImp implements BookingService {
     private boolean isIntervalsIntersect(Booking newBooking) {
         long itemId = newBooking.getItem().getId();
         List<BookingDTO> listOfUpcomingBookings = getAllFutureBookingsOfItem(itemId);
-        if (!listOfUpcomingBookings.isEmpty() && !listOfUpcomingBookings
-                .stream().filter(e -> e.getStart().isBefore(newBooking.getStart()) && e.getEnd().isAfter(newBooking.getEnd())
-                        || e.getStart().isAfter(newBooking.getStart()) && e.getEnd().isBefore(newBooking.getEnd()))
-                .collect(Collectors.toList()).isEmpty()) {
+        if (!listOfUpcomingBookings.isEmpty() && listOfUpcomingBookings
+                .stream()
+                .anyMatch(e -> e.getStart().isBefore(newBooking.getStart()) && e.getEnd().isAfter(newBooking.getEnd())
+                        || e.getStart().isAfter(newBooking.getStart()) && e.getEnd().isBefore(newBooking.getEnd())
+                        || e.getStart().isAfter(newBooking.getStart()) && e.getStart().isBefore(newBooking.getEnd()) && e.getEnd().isAfter(newBooking.getEnd())
+                        || e.getStart().isBefore(newBooking.getStart()) && e.getEnd().isAfter(newBooking.getStart()) && e.getEnd().isBefore(newBooking.getEnd()))) {
             return false;
         }
         return true;
@@ -79,10 +82,8 @@ public class BookingServiceImp implements BookingService {
                 new EntityNotFoundException(String.format("Бронирования с id = %d не найдено", bookingId)));
         Item item = booking.getItem();
         long userId = item.getOwner().getId();
-        if (booking.getStatus().equals(Status.APPROVED) || booking.getStatus().equals(Status.REJECTED)) {
-            if (item.getOwner().getId() == ownerId) {
-                throw new IncorrectOwnerException("Владелец вещи не может забронировать собственный предмет");
-            }
+        if (booking.getStatus().equals(Status.APPROVED)) {
+                throw new IncorrectAvailableException("Нельзя отменить подтверждённое бронирование");
         }
         if (booking.getStart().isBefore(LocalDateTime.now())) {
             throw new IncorrectTimeException(String.format("Дата старта брониравания с id = %d уже прошла", bookingId));

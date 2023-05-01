@@ -36,9 +36,9 @@ public class Item {
     @OneToOne
     private ItemRequest request;
 
-    @OneToMany(fetch = FetchType.LAZY)
+   /* @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
-    private List<Comment> comments;
+    private List<Comment> comments;*/
 
     @Override
     public boolean equals(Object o) {

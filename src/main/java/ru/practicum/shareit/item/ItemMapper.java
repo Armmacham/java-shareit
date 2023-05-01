@@ -35,18 +35,18 @@ public class ItemMapper {
                 itemDTO.getDescription(),
                 itemDTO.getAvailable(),
                 itemDTO.getOwner() != null ? userMapper.toUser(itemDTO.getOwner()) : null,
-                null,
-                List.of()
+                null
+              //  List.of()
         );
     }
 
     public ItemCommentsDTO toItemCommentDto(Item item) {
         ItemCommentsDTO itemCommentsDTO = new ItemCommentsDTO();
         itemCommentsDTO.setId(item.getId());
-        itemCommentsDTO.setComments(
+      /*  itemCommentsDTO.setComments(
                 item.getComments() != null ?
                         item.getComments().stream().map(commentMapper::toCommentDTO).collect(Collectors.toList())
-                        : List.of());
+                        : List.of());*/
         itemCommentsDTO.setName(item.getName());
         itemCommentsDTO.setDescription(item.getDescription());
         itemCommentsDTO.setAvailable(item.getAvailable());

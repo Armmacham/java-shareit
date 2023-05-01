@@ -7,6 +7,9 @@ import ru.practicum.shareit.booking.BookingDTO;
 import ru.practicum.shareit.booking.BookingHistoryDto;
 import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.booking.Status;
+import ru.practicum.shareit.comments.Comment;
+import ru.practicum.shareit.comments.CommentMapper;
+import ru.practicum.shareit.comments.CommentRepository;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
@@ -24,6 +27,10 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingService bookingService;
 
+    private final CommentMapper commentMapper;
+
+    private final CommentRepository commentRepository;
+
     @Transactional(readOnly = true)
     @Override
     public ItemCommentsDTO getItem(Long id, Long userId) {
@@ -31,14 +38,16 @@ public class ItemServiceImpl implements ItemService {
         ItemCommentsDTO itemCommentsDTO = itemMapper.toItemCommentDto(item);
         if (item.getOwner().getId().equals(userId)) {
             List<BookingDTO> allBookingsOfItemsIds = bookingService.getAllBookingsOfItemsIds(List.of(id));
-            Optional<BookingDTO> currentBookingOfItem = getCurrentBooking(id, allBookingsOfItemsIds);
-            getFutureBookingsOfItem(id, allBookingsOfItemsIds)
+            Map<Long, List<BookingDTO>> bookings = convertToMap(allBookingsOfItemsIds);
+            Optional<BookingDTO> currentBookingOfItem = getCurrentBooking(bookings.get(id));
+            getFutureBookingsOfItem(bookings.get(id))
                     .ifPresent(bookingDTO -> itemCommentsDTO.setNextBooking(new BookingHistoryDto(bookingDTO.getId(), bookingDTO.getBooker().getId(), bookingDTO.getStart(), bookingDTO.getEnd())));
 
-            getPreviousBookingOfItem(id, allBookingsOfItemsIds)
+            getPreviousBookingOfItem(bookings.get(id))
                     .ifPresentOrElse(bookingDTO -> itemCommentsDTO.setLastBooking(new BookingHistoryDto(bookingDTO.getId(), bookingDTO.getBooker().getId(), bookingDTO.getStart(), bookingDTO.getEnd())),
                             () -> currentBookingOfItem.ifPresent(bookingDTO -> itemCommentsDTO.setLastBooking(new BookingHistoryDto(currentBookingOfItem.get().getId(), currentBookingOfItem.get().getBooker().getId(), bookingDTO.getStart(), bookingDTO.getEnd()))));
         }
+        itemCommentsDTO.setComments(commentRepository.findAllByItemId(id).stream().map(commentMapper::toCommentDTO).collect(Collectors.toList()));
         return itemCommentsDTO;
     }
 
@@ -50,48 +59,64 @@ public class ItemServiceImpl implements ItemService {
 
         List<ItemCommentsDTO> itemsByUser = itemRepository.findAllByOwnerId(userId)
                 .stream()
-                .filter(i -> Objects.equals(i.getOwner().getId(), userId))
                 .map(itemMapper::toItemCommentDto)
                 .sorted(Comparator.comparing(ItemDTO::getId))
                 .collect(Collectors.toList());
 
         List<Long> collect = itemsByUser.stream().map(ItemCommentsDTO::getId).collect(Collectors.toList());
+        List<Comment> commentsByItems = commentRepository.findAllByItemIdIn(collect); //
         List<BookingDTO> allBookingsOfItemsIds = bookingService.getAllBookingsOfItemsIds(collect);
+        Map<Long, List<BookingDTO>> bookings = convertToMap(allBookingsOfItemsIds);
         itemsByUser.forEach(e -> {
-            Optional<BookingDTO> currentBookingOfItem = getCurrentBooking(e.getId(), allBookingsOfItemsIds);
-            getFutureBookingsOfItem(e.getId(), allBookingsOfItemsIds)
+            Optional<BookingDTO> currentBookingOfItem = getCurrentBooking(bookings.get(e.getId()));
+            getFutureBookingsOfItem(bookings.get(e.getId()))
                     .ifPresent(bookingDTO -> e.setNextBooking(new BookingHistoryDto(bookingDTO.getId(), bookingDTO.getBooker().getId(), bookingDTO.getStart(), bookingDTO.getEnd())));
-            getPreviousBookingOfItem(e.getId(), allBookingsOfItemsIds)
+            getPreviousBookingOfItem(bookings.get(e.getId()))
                     .ifPresentOrElse(bookingDTO -> e.setLastBooking(new BookingHistoryDto(bookingDTO.getId(), bookingDTO.getBooker().getId(), bookingDTO.getStart(), bookingDTO.getEnd())),
                             () -> currentBookingOfItem.ifPresent(bookingDTO -> e.setLastBooking(new BookingHistoryDto(currentBookingOfItem.get().getId(), currentBookingOfItem.get().getBooker().getId(), bookingDTO.getStart(), bookingDTO.getEnd()))));
+            e.setComments(commentsByItems.stream().filter(comment -> comment.getItem().getId().equals(e.getId())).map(commentMapper::toCommentDTO).collect(Collectors.toList()));
         });
         return itemsByUser;
     }
 
-    private Optional<BookingDTO> getCurrentBooking(Long id, List<BookingDTO> bookings) {
-        return bookings
-                .stream()
-                .filter(booking -> booking.getItem().getId().equals(id))
-                .filter(booking -> Status.APPROVED.equals(booking.getStatus()))
-                .filter(booking -> booking.getStart().isBefore(LocalDateTime.now()) && booking.getEnd().isAfter(LocalDateTime.now()))
-                .max(Comparator.comparing(BookingDTO::getStart));
+    private Map<Long, List<BookingDTO>> convertToMap(List<BookingDTO> list) {
+        Map<Long, List<BookingDTO>> bookings = new HashMap<>();
+        list.forEach(e -> {
+            if (bookings.get(e.getItem().getId()) == null) {
+                LinkedList<BookingDTO> bookingDTOS = new LinkedList<>();
+                bookingDTOS.add(e);
+                bookings.put(e.getItem().getId(), bookingDTOS);
+            } else {
+                bookings.get(e.getItem().getId()).add(e);
+            }
+        });
+        return bookings;
     }
 
-    private Optional<BookingDTO> getPreviousBookingOfItem(Long id, List<BookingDTO> bookings) {
-        return bookings
-                .stream()
-                .filter(e -> e.getItem().getId().equals(id))
-                .filter(e -> Status.APPROVED.equals(e.getStatus()))
-                .filter(e -> e.getEnd().isBefore(LocalDateTime.now()))
-                .max(Comparator.comparing(BookingDTO::getEnd));
+    private Optional<BookingDTO> getCurrentBooking(List<BookingDTO> bookings) {
+        return bookings == null ? Optional.empty() :
+                bookings
+                        .stream()
+                        .filter(booking -> Status.APPROVED.equals(booking.getStatus()))
+                        .filter(booking -> booking.getStart().isBefore(LocalDateTime.now()) && booking.getEnd().isAfter(LocalDateTime.now()))
+                        .max(Comparator.comparing(BookingDTO::getStart));
     }
 
-    private Optional<BookingDTO> getFutureBookingsOfItem(Long id, List<BookingDTO> bookings) {
-        return bookings
-                .stream()
-                .filter(e -> e.getItem().getId().equals(id))
-                .filter(e -> e.getStart().isAfter(LocalDateTime.now()))
-                .min(Comparator.comparing(BookingDTO::getStart));
+    private Optional<BookingDTO> getPreviousBookingOfItem(List<BookingDTO> bookings) {
+        return bookings == null ? Optional.empty() :
+                bookings
+                        .stream()
+                        .filter(e -> Status.APPROVED.equals(e.getStatus()))
+                        .filter(e -> e.getEnd().isBefore(LocalDateTime.now()))
+                        .max(Comparator.comparing(BookingDTO::getEnd));
+    }
+
+    private Optional<BookingDTO> getFutureBookingsOfItem(List<BookingDTO> bookings) {
+        return bookings == null ? Optional.empty() :
+                bookings
+                        .stream()
+                        .filter(e -> e.getStart().isAfter(LocalDateTime.now()))
+                        .min(Comparator.comparing(BookingDTO::getStart));
     }
 
     @Transactional

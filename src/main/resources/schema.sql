@@ -1,8 +1,8 @@
-DROP table if exists bookings cascade;
+/*DROP table if exists bookings cascade;
 DROP table if exists requests cascade;
 DROP table if exists comments cascade;
 DROP table if exists items cascade;
-DROP table if exists users cascade;
+DROP table if exists users cascade;*/
 
 CREATE TABLE IF NOT EXISTS users
 (
