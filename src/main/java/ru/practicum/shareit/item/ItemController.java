@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -8,6 +9,8 @@ import ru.practicum.shareit.comments.CommentDTO;
 import ru.practicum.shareit.comments.CommentService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import java.util.Collection;
 import java.util.List;
 
@@ -22,7 +25,8 @@ public class ItemController {
     private final String userIdHeader = "X-Sharer-User-Id";
 
     @PostMapping()
-    public ResponseEntity<ItemDTO> createItem(@Valid @RequestBody ItemDTO itemDto, @RequestHeader(userIdHeader) Long userId) {
+    public ResponseEntity<ItemDTO> createItem(@Valid @RequestBody ItemCreateDtoRequest itemDto,
+                                              @RequestHeader(userIdHeader) Long userId) {
         ItemDTO itemCreated = itemService.addItem(itemDto, userId);
         return ResponseEntity.status(201).body(itemCreated);
     }
@@ -34,8 +38,10 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Collection<ItemDTO>> searchItems(@RequestParam(name = "text") String text) {
-        return ResponseEntity.ok().body(itemService.searchItemsByDescription(text));
+    public ResponseEntity<Collection<ItemDTO>> searchItems(@RequestParam(name = "text") String text,
+                                                           @RequestParam(value = "from", defaultValue = "0") @Min(0) Integer from,
+                                                           @RequestParam(value = "size", defaultValue = "10") @Min(1) @Max(20) Integer size) {
+        return ResponseEntity.ok().body(itemService.searchItemsByDescription(text, PageRequest.of(from / size, size)));
     }
 
     @DeleteMapping("/{itemId}")
@@ -50,8 +56,10 @@ public class ItemController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<ItemCommentsDTO>> findAll(@RequestHeader(userIdHeader) Long userId) {
-        return ResponseEntity.ok().body(itemService.getAllItemsByUserId(userId));
+    public ResponseEntity<List<ItemCommentsDTO>> findAll(@RequestHeader(userIdHeader) Long userId,
+                                                         @RequestParam(value = "from", defaultValue = "0") @Min(0) Integer from,
+                                                         @RequestParam(value = "size", defaultValue = "10") @Min(1) @Max(20) Integer size) {
+        return ResponseEntity.ok().body(itemService.getAllItemsByUserId(userId, PageRequest.of(from / size, size)));
     }
 
     @PostMapping("/{itemId}/comment")

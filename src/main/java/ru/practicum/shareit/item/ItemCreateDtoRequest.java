@@ -3,8 +3,6 @@ package ru.practicum.shareit.item;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.booking.BookingHistoryDto;
-import ru.practicum.shareit.user.UserDTO;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -12,9 +10,7 @@ import javax.validation.constraints.NotNull;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ItemDTO {
-
-    private Long id;
+public class ItemCreateDtoRequest {
 
     @NotBlank
     private String name;
@@ -25,12 +21,6 @@ public class ItemDTO {
     @NotNull
     private Boolean available;
 
-    private UserDTO owner;
-
     private Long requestId;
-
-    private BookingHistoryDto lastBooking;
-
-    private BookingHistoryDto nextBooking;
 
 }

@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingDTO;
@@ -11,6 +13,7 @@ import ru.practicum.shareit.comments.Comment;
 import ru.practicum.shareit.comments.CommentMapper;
 import ru.practicum.shareit.comments.CommentRepository;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
@@ -26,10 +29,9 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingService bookingService;
-
     private final CommentMapper commentMapper;
-
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Transactional(readOnly = true)
     @Override
@@ -53,11 +55,11 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemCommentsDTO> getAllItemsByUserId(Long userId) {
-        userRepository.findById(userId).orElseThrow(() ->
-                new EntityNotFoundException(String.format("Пользователь с id %d не найден", userId)));
+    public List<ItemCommentsDTO> getAllItemsByUserId(Long ownerId, Pageable pageable) {
+        userRepository.findById(ownerId).orElseThrow(() ->
+                new EntityNotFoundException(String.format("Пользователь с id %d не найден", ownerId)));
 
-        List<ItemCommentsDTO> itemsByUser = itemRepository.findAllByOwnerId(userId)
+        List<ItemCommentsDTO> itemsByUser = itemRepository.findAllByOwnerId(ownerId, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()))
                 .stream()
                 .map(itemMapper::toItemCommentDto)
                 .sorted(Comparator.comparing(ItemDTO::getId))
@@ -121,10 +123,11 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional
     @Override
-    public ItemDTO addItem(ItemDTO itemDto, Long ownerId) {
+    public ItemDTO addItem(ItemCreateDtoRequest itemDto, Long ownerId) {
         User user = userRepository.findById(ownerId).orElseThrow(() -> new EntityNotFoundException(""));
         Item item = itemMapper.toItem(itemDto);
         item.setOwner(user);
+        item.setRequest(itemDto.getRequestId() == null ? null : itemRequestRepository.findById(itemDto.getRequestId()).orElseThrow(() -> new EntityNotFoundException(String.format("Запрос id номером %d не найден", itemDto.getRequestId()))));
         return itemMapper.toItemDTO(itemRepository.save(item));
     }
 
@@ -156,11 +159,11 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public Collection<ItemDTO> searchItemsByDescription(String keyword) {
+    public Collection<ItemDTO> searchItemsByDescription(String keyword, PageRequest pageRequest) {
         if (keyword.isBlank()) {
             return List.of();
         }
-        return itemRepository.findByNameOrDescriptionLike(keyword.toUpperCase())
+        return itemRepository.findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue(keyword.toUpperCase(), pageRequest)
                 .stream().filter(Item::getAvailable)
                 .map(itemMapper::toItemDTO).collect(Collectors.toList());
     }
