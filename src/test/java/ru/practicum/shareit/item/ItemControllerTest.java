@@ -31,8 +31,8 @@ public class ItemControllerTest {
 
     public static final String X_SHARER_USER_ID = "X-Sharer-User-Id";
 
-    private final static Long USER_ID = 3L;
-    private final static Long ITEM_ID = 4L;
+    private static final Long USER_ID = 3L;
+    private static final Long ITEM_ID = 4L;
 
     @MockBean
     private ItemService itemService;
@@ -143,7 +143,7 @@ public class ItemControllerTest {
 
         when(commentService.addComment(commentDTO, USER_ID, ITEM_ID)).thenReturn(commentDTO);
 
-        mvc.perform(post("/items/"+ ITEM_ID + "/comment")
+        mvc.perform(post("/items/" + ITEM_ID + "/comment")
                         .content(objectMapper.writeValueAsString(commentDTO))
                         .header(X_SHARER_USER_ID, USER_ID)
                         .contentType(MediaType.APPLICATION_JSON))

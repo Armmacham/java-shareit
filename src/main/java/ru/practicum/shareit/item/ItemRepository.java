@@ -18,5 +18,6 @@ public interface ItemRepository extends PagingAndSortingRepository<Item, Long> {
 
     @Query("select u from Item u where upper(u.name) like %:description% or upper(u.description) like %:description%")
     List<Item> findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue(String description, Pageable pageable);
+
     List<Item> findAllByRequestId(Long id);
 }

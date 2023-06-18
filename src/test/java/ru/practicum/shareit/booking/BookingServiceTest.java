@@ -33,17 +33,17 @@ public class BookingServiceTest {
     private BookingMapper bookingMapper;
     private BookingService bookingService;
 
-    private final static long BOOKER_ID = 1L;
-    private final static long ITEM_ID = 87L;
-    private final static long BOOKING_ID = 13L;
-    private final static long OWNER_ID = 5L;
-    private final static long USER_ID = 55L;
+    private static final long BOOKER_ID = 1L;
+    private static final long ITEM_ID = 87L;
+    private static final long BOOKING_ID = 13L;
+    private static final long OWNER_ID = 5L;
+    private static final long USER_ID = 55L;
 
-    private Item TEST_ITEM;
-    private Booking TEST_BOOKING;
-    private User TEST_OWNER;
-    private User TEST_BOOKER;
-    private User TEST_USER;
+    private Item testItem;
+    private Booking testBooking;
+    private User testOwner;
+    private User testBooker;
+    private User testUser;
 
 
     @BeforeEach
@@ -53,21 +53,21 @@ public class BookingServiceTest {
         userRepository = mock(UserRepository.class);
         bookingMapper = new BookingMapper(new UserMapper(), new ItemMapper(new UserMapper()));
         bookingService = new BookingServiceImp(bookingRepository, itemRepository, userRepository, bookingMapper);
-        TEST_OWNER = new User(OWNER_ID, "name1", "name1@gmail.com");
-        TEST_BOOKER = new User(BOOKER_ID, "name2", "name2@gmail.com");
-        TEST_USER = new User(USER_ID, "name3", "name3@gmail.com");
-        TEST_ITEM = new Item(
+        testOwner = new User(OWNER_ID, "name1", "name1@gmail.com");
+        testBooker = new User(BOOKER_ID, "name2", "name2@gmail.com");
+        testUser = new User(USER_ID, "name3", "name3@gmail.com");
+        testItem = new Item(
                 ITEM_ID,
                 "otvertka",
                 "description",
                 true,
-                TEST_OWNER,
+                testOwner,
                 null
         );
-        TEST_BOOKING = new Booking(
+        testBooking = new Booking(
                 BOOKING_ID,
-                TEST_ITEM,
-                TEST_BOOKER,
+                testItem,
+                testBooker,
                 WAITING,
                 LocalDateTime.now(),
                 LocalDateTime.now().plusHours(2)
@@ -81,9 +81,9 @@ public class BookingServiceTest {
         bookingInputDTO.setEnd(LocalDateTime.now().plusHours(2));
         bookingInputDTO.setStart(LocalDateTime.now().plusMinutes(1));
 
-        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(TEST_ITEM));
-        when(bookingRepository.save(any(Booking.class))).thenReturn(TEST_BOOKING);
-        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(TEST_OWNER));
+        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(testItem));
+        when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testOwner));
 
         BookingDTO bookingDTO = bookingService.addBooking(BOOKER_ID, bookingInputDTO);
         assertNotNull(bookingDTO);
@@ -114,11 +114,11 @@ public class BookingServiceTest {
         bookingInputDTO.setEnd(LocalDateTime.now().plusHours(2));
         bookingInputDTO.setStart(LocalDateTime.now().plusMinutes(1));
 
-        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(TEST_ITEM));
-        when(bookingRepository.findAllByItemIdAndStatusIn(TEST_ITEM.getId(), List.of(Status.APPROVED, WAITING))).thenReturn(List.of(
-                new Booking(1L, TEST_ITEM, TEST_OWNER, Status.APPROVED, LocalDateTime.now().plusHours(1), LocalDateTime.MAX)
+        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(testItem));
+        when(bookingRepository.findAllByItemIdAndStatusIn(testItem.getId(), List.of(Status.APPROVED, WAITING))).thenReturn(List.of(
+                new Booking(1L, testItem, testOwner, Status.APPROVED, LocalDateTime.now().plusHours(1), LocalDateTime.MAX)
         ));
-        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(TEST_OWNER));
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testOwner));
 
         try {
             bookingService.addBooking(BOOKER_ID, bookingInputDTO);
@@ -134,7 +134,7 @@ public class BookingServiceTest {
                 "otvertka",
                 "description",
                 false,
-                TEST_OWNER,
+                testOwner,
                 null
         );
 
@@ -144,8 +144,8 @@ public class BookingServiceTest {
         bookingInputDTO.setStart(LocalDateTime.now().plusMinutes(1));
 
         when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(item));
-        when(bookingRepository.save(any(Booking.class))).thenReturn(TEST_BOOKING);
-        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(TEST_OWNER));
+        when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testOwner));
 
         try {
             bookingService.addBooking(BOOKER_ID, bookingInputDTO);
@@ -161,8 +161,8 @@ public class BookingServiceTest {
         bookingInputDTO.setEnd(LocalDateTime.now().plusHours(2));
         bookingInputDTO.setStart(LocalDateTime.now().plusMinutes(1));
 
-        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(TEST_ITEM));
-        when(bookingRepository.save(any(Booking.class))).thenReturn(TEST_BOOKING);
+        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(testItem));
+        when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
         when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.empty());
 
         try {
@@ -179,8 +179,8 @@ public class BookingServiceTest {
         bookingInputDTO.setEnd(LocalDateTime.now().plusHours(2));
         bookingInputDTO.setStart(LocalDateTime.now().plusMinutes(1));
 
-        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(TEST_ITEM));
-        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(TEST_OWNER));
+        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(testItem));
+        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
 
         try {
             bookingService.addBooking(OWNER_ID, bookingInputDTO);
@@ -195,8 +195,8 @@ public class BookingServiceTest {
         booking.setId(BOOKING_ID);
         booking.setStatus(WAITING);
         booking.setStart(LocalDateTime.now().plusHours(2));
-        booking.setBooker(TEST_BOOKER);
-        booking.setItem(TEST_ITEM);
+        booking.setBooker(testBooker);
+        booking.setItem(testItem);
 
         when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
@@ -212,8 +212,8 @@ public class BookingServiceTest {
         booking.setId(BOOKING_ID);
         booking.setStatus(WAITING);
         booking.setStart(LocalDateTime.now().plusHours(2));
-        booking.setBooker(TEST_BOOKER);
-        booking.setItem(TEST_ITEM);
+        booking.setBooker(testBooker);
+        booking.setItem(testItem);
 
         when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
@@ -236,8 +236,8 @@ public class BookingServiceTest {
 
     @Test
     public void approveOrRejectBookingWhenRejectApprovedBooking() {
-        when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(TEST_BOOKING));
-        TEST_BOOKING.setStatus(Status.APPROVED);
+        when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(testBooking));
+        testBooking.setStatus(Status.APPROVED);
 
         try {
             bookingService.approveOrRejectBooking(OWNER_ID, BOOKING_ID, false);
@@ -248,8 +248,8 @@ public class BookingServiceTest {
 
     @Test
     public void approveOrRejectBookingWhenBookingDateExpired() {
-        when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(TEST_BOOKING));
-        TEST_BOOKING.setStart(LocalDateTime.now().minusHours(1));
+        when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(testBooking));
+        testBooking.setStart(LocalDateTime.now().minusHours(1));
 
         try {
             bookingService.approveOrRejectBooking(OWNER_ID, BOOKING_ID, true);
@@ -260,10 +260,10 @@ public class BookingServiceTest {
 
     @Test
     public void approveOrRejectBookingWhenItemIsNotBelongToUserApprovingBooking() {
-        when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(TEST_BOOKING));
-        TEST_BOOKING.setStart(LocalDateTime.now().plusHours(1));
-        TEST_BOOKING.setEnd(TEST_BOOKING.getStart().plusHours(1));
-        TEST_BOOKING.getItem().getOwner().setId(28L);
+        when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(testBooking));
+        testBooking.setStart(LocalDateTime.now().plusHours(1));
+        testBooking.setEnd(testBooking.getStart().plusHours(1));
+        testBooking.getItem().getOwner().setId(28L);
 
         try {
             bookingService.approveOrRejectBooking(OWNER_ID, BOOKING_ID, true);
@@ -274,13 +274,13 @@ public class BookingServiceTest {
 
     @Test
     public void getBookingInformationTest() {
-        when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(TEST_BOOKING));
-        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(TEST_BOOKER));
-        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(TEST_OWNER));
-        TEST_BOOKING.setStart(LocalDateTime.now().plusHours(1));
-        TEST_BOOKING.setEnd(TEST_BOOKING.getStart().plusHours(1));
+        when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(testBooking));
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
+        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
+        testBooking.setStart(LocalDateTime.now().plusHours(1));
+        testBooking.setEnd(testBooking.getStart().plusHours(1));
 
-        BookingDTO bookingDTO = bookingMapper.toDTO(TEST_BOOKING);
+        BookingDTO bookingDTO = bookingMapper.toDTO(testBooking);
 
         assertEquals(bookingDTO, bookingService.getBookingInformation(BOOKING_ID, BOOKER_ID));
         assertEquals(bookingDTO, bookingService.getBookingInformation(BOOKING_ID, OWNER_ID));
@@ -289,7 +289,7 @@ public class BookingServiceTest {
     @Test
     public void getBookingInformationWhenBookingNotFound() {
         when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.empty());
-        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(TEST_BOOKER));
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
 
         try {
             bookingService.getBookingInformation(BOOKING_ID, BOOKER_ID);
@@ -300,12 +300,12 @@ public class BookingServiceTest {
 
    @Test
    public void getBookingInformationWhenBookingNotBelongToUser() {
-       when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(TEST_BOOKING));
-       when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(TEST_BOOKER));
-       when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(TEST_OWNER));
-       when(userRepository.findById(USER_ID)).thenReturn(Optional.of(TEST_USER));
-       TEST_BOOKING.setStart(LocalDateTime.now().plusHours(1));
-       TEST_BOOKING.setEnd(TEST_BOOKING.getStart().plusHours(1));
+       when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(testBooking));
+       when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
+       when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
+       when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+       testBooking.setStart(LocalDateTime.now().plusHours(1));
+       testBooking.setEnd(testBooking.getStart().plusHours(1));
 
        try {
            bookingService.getBookingInformation(BOOKING_ID, USER_ID);
@@ -316,11 +316,11 @@ public class BookingServiceTest {
 
    @Test
     public void getAllBookingsOfCurrentUserWaitingTest() {
-        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(TEST_BOOKER));
-        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(TEST_OWNER));
-        when(bookingRepository.findByBookerIdAndStatusIn(OWNER_ID, List.of(WAITING))).thenReturn(List.of(TEST_BOOKING));
-        TEST_BOOKING.setStart(LocalDateTime.now().plusHours(1));
-        TEST_BOOKING.setEnd(TEST_BOOKING.getStart().plusHours(1));
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
+        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
+        when(bookingRepository.findByBookerIdAndStatusIn(OWNER_ID, List.of(WAITING))).thenReturn(List.of(testBooking));
+        testBooking.setStart(LocalDateTime.now().plusHours(1));
+        testBooking.setEnd(testBooking.getStart().plusHours(1));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfCurrentUser(State.WAITING, OWNER_ID, PageRequest.ofSize(5));
 
@@ -329,11 +329,11 @@ public class BookingServiceTest {
 
    @Test
     public void getAllBookingsOfCurrentUserCurrent() {
-       when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(TEST_BOOKER));
-       when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.REJECTED, Status.WAITING, Status.CANCELED))).thenReturn(List.of(TEST_BOOKING));
+       when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
+       when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.REJECTED, Status.WAITING, Status.CANCELED))).thenReturn(List.of(testBooking));
 
-       TEST_BOOKING.setStart(LocalDateTime.now().minusHours(1));
-       TEST_BOOKING.setEnd(TEST_BOOKING.getStart().plusHours(2));
+       testBooking.setStart(LocalDateTime.now().minusHours(1));
+       testBooking.setEnd(testBooking.getStart().plusHours(2));
 
        List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfCurrentUser(State.CURRENT, BOOKER_ID, PageRequest.ofSize(5));
 
@@ -342,11 +342,11 @@ public class BookingServiceTest {
 
     @Test
     public void getAllBookingsOfCurrentUserTestFutureBookings() {
-        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(TEST_BOOKER));
-        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.WAITING))).thenReturn(List.of(TEST_BOOKING));
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
+        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.WAITING))).thenReturn(List.of(testBooking));
 
-        TEST_BOOKING.setStart(LocalDateTime.now().plusHours(1));
-        TEST_BOOKING.setEnd(TEST_BOOKING.getStart().plusHours(1));
+        testBooking.setStart(LocalDateTime.now().plusHours(1));
+        testBooking.setEnd(testBooking.getStart().plusHours(1));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfCurrentUser(State.FUTURE, BOOKER_ID, PageRequest.ofSize(5));
 
@@ -355,12 +355,12 @@ public class BookingServiceTest {
 
     @Test
     public void getAllBookingsOfCurrentUserTestPastBookings() {
-        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(TEST_BOOKER));
-        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED))).thenReturn(List.of(TEST_BOOKING));
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
+        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED))).thenReturn(List.of(testBooking));
 
-        TEST_BOOKING.setStatus(APPROVED);
-        TEST_BOOKING.setStart(LocalDateTime.now().minusHours(2));
-        TEST_BOOKING.setEnd(TEST_BOOKING.getStart().plusHours(1));
+        testBooking.setStatus(APPROVED);
+        testBooking.setStart(LocalDateTime.now().minusHours(2));
+        testBooking.setEnd(testBooking.getStart().plusHours(1));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfCurrentUser(State.PAST, BOOKER_ID, PageRequest.ofSize(5));
 
@@ -369,12 +369,12 @@ public class BookingServiceTest {
 
     @Test
     public void getAllBookingsOfCurrentUserTestRejectedBookings() {
-        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(TEST_BOOKER));
-        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.REJECTED, Status.CANCELED))).thenReturn(List.of(TEST_BOOKING));
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
+        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.REJECTED, Status.CANCELED))).thenReturn(List.of(testBooking));
 
-        TEST_BOOKING.setStatus(CANCELED);
-        TEST_BOOKING.setStart(LocalDateTime.now().minusHours(2));
-        TEST_BOOKING.setEnd(TEST_BOOKING.getStart().plusHours(1));
+        testBooking.setStatus(CANCELED);
+        testBooking.setStart(LocalDateTime.now().minusHours(2));
+        testBooking.setEnd(testBooking.getStart().plusHours(1));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfCurrentUser(State.REJECTED, BOOKER_ID, PageRequest.ofSize(5));
 
@@ -383,8 +383,8 @@ public class BookingServiceTest {
 
     @Test
     public void getAllBookingsOfCurrentUserTestDefault() {
-        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(TEST_BOOKER));
-        when(bookingRepository.findAllByBookerId(BOOKER_ID)).thenReturn(List.of(TEST_BOOKING));
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
+        when(bookingRepository.findAllByBookerId(BOOKER_ID)).thenReturn(List.of(testBooking));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfCurrentUser(State.ALL, BOOKER_ID, PageRequest.ofSize(5));
 
@@ -393,12 +393,12 @@ public class BookingServiceTest {
 
     @Test
     public void getAllBookingsOfItemsIdsTest() {
-        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(TEST_ITEM));
-        when(bookingRepository.findAllByItemIdInAndStatusIn(List.of(ITEM_ID), List.of(Status.APPROVED, Status.WAITING))).thenReturn(List.of(TEST_BOOKING));
-        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(TEST_BOOKER));
-        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(TEST_OWNER));
-        TEST_BOOKING.setStart(LocalDateTime.now().plusHours(1));
-        TEST_BOOKING.setEnd(TEST_BOOKING.getStart().plusHours(1));
+        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(testItem));
+        when(bookingRepository.findAllByItemIdInAndStatusIn(List.of(ITEM_ID), List.of(Status.APPROVED, Status.WAITING))).thenReturn(List.of(testBooking));
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
+        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
+        testBooking.setStart(LocalDateTime.now().plusHours(1));
+        testBooking.setEnd(testBooking.getStart().plusHours(1));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfItemsIds(List.of(ITEM_ID));
 
@@ -407,10 +407,10 @@ public class BookingServiceTest {
 
     @Test
     public void getAllBookingsOfOwnerTestWaitingBookings() {
-        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(TEST_OWNER));
-        when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(TEST_ITEM));
-        List<Long> itemIdsForOwner = Stream.of(TEST_ITEM).map(Item::getId).collect(Collectors.toList());
-        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.WAITING))).thenReturn(List.of(TEST_BOOKING));
+        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
+        when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(testItem));
+        List<Long> itemIdsForOwner = Stream.of(testItem).map(Item::getId).collect(Collectors.toList());
+        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.WAITING))).thenReturn(List.of(testBooking));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfOwner(State.WAITING, OWNER_ID, PageRequest.ofSize(10));
 
@@ -419,14 +419,14 @@ public class BookingServiceTest {
 
     @Test
     public void getAllBookingsOfOwnerTestCurrentBookings() {
-        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(TEST_OWNER));
-        when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(TEST_ITEM));
-        List<Long> itemIdsForOwner = Stream.of(TEST_ITEM).map(Item::getId).collect(Collectors.toList());
-        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED))).thenReturn(List.of(TEST_BOOKING));
+        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
+        when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(testItem));
+        List<Long> itemIdsForOwner = Stream.of(testItem).map(Item::getId).collect(Collectors.toList());
+        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED))).thenReturn(List.of(testBooking));
 
-        TEST_BOOKING.setStatus(APPROVED);
-        TEST_BOOKING.setStart(LocalDateTime.now().minusHours(1));
-        TEST_BOOKING.setEnd(LocalDateTime.now().plusHours(1));
+        testBooking.setStatus(APPROVED);
+        testBooking.setStart(LocalDateTime.now().minusHours(1));
+        testBooking.setEnd(LocalDateTime.now().plusHours(1));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfOwner(State.CURRENT, OWNER_ID, PageRequest.ofSize(10));
 
@@ -435,14 +435,14 @@ public class BookingServiceTest {
 
     @Test
     public void getAllBookingsOfOwnerTestFutureBookings() {
-        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(TEST_OWNER));
-        when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(TEST_ITEM));
-        List<Long> itemIdsForOwner = Stream.of(TEST_ITEM).map(Item::getId).collect(Collectors.toList());
-        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.WAITING))).thenReturn(List.of(TEST_BOOKING));
+        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
+        when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(testItem));
+        List<Long> itemIdsForOwner = Stream.of(testItem).map(Item::getId).collect(Collectors.toList());
+        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.WAITING))).thenReturn(List.of(testBooking));
 
-        TEST_BOOKING.setStatus(APPROVED);
-        TEST_BOOKING.setStart(LocalDateTime.now().plusHours(1));
-        TEST_BOOKING.setEnd(LocalDateTime.now().plusHours(2));
+        testBooking.setStatus(APPROVED);
+        testBooking.setStart(LocalDateTime.now().plusHours(1));
+        testBooking.setEnd(LocalDateTime.now().plusHours(2));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfOwner(State.FUTURE, OWNER_ID, PageRequest.ofSize(10));
 
@@ -451,14 +451,14 @@ public class BookingServiceTest {
 
     @Test
     public void getAllBookingsOfOwnerTestPastBookings() {
-        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(TEST_OWNER));
-        when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(TEST_ITEM));
-        List<Long> itemIdsForOwner = Stream.of(TEST_ITEM).map(Item::getId).collect(Collectors.toList());
-        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED))).thenReturn(List.of(TEST_BOOKING));
+        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
+        when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(testItem));
+        List<Long> itemIdsForOwner = Stream.of(testItem).map(Item::getId).collect(Collectors.toList());
+        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED))).thenReturn(List.of(testBooking));
 
-        TEST_BOOKING.setStatus(CANCELED);
-        TEST_BOOKING.setStart(LocalDateTime.now().minusHours(2));
-        TEST_BOOKING.setEnd(LocalDateTime.now().minusHours(1));
+        testBooking.setStatus(CANCELED);
+        testBooking.setStart(LocalDateTime.now().minusHours(2));
+        testBooking.setEnd(LocalDateTime.now().minusHours(1));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfOwner(State.PAST, OWNER_ID, PageRequest.ofSize(10));
 
@@ -467,14 +467,14 @@ public class BookingServiceTest {
 
     @Test
     public void getAllBookingsOfOwnerTestRejectedBookings() {
-        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(TEST_OWNER));
-        when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(TEST_ITEM));
-        List<Long> itemIdsForOwner = Stream.of(TEST_ITEM).map(Item::getId).collect(Collectors.toList());
-        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.REJECTED, Status.CANCELED))).thenReturn(List.of(TEST_BOOKING));
+        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
+        when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(testItem));
+        List<Long> itemIdsForOwner = Stream.of(testItem).map(Item::getId).collect(Collectors.toList());
+        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.REJECTED, Status.CANCELED))).thenReturn(List.of(testBooking));
 
-        TEST_BOOKING.setStatus(REJECTED);
-        TEST_BOOKING.setStart(LocalDateTime.now().minusHours(2));
-        TEST_BOOKING.setEnd(LocalDateTime.now().minusHours(1));
+        testBooking.setStatus(REJECTED);
+        testBooking.setStart(LocalDateTime.now().minusHours(2));
+        testBooking.setEnd(LocalDateTime.now().minusHours(1));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfOwner(State.REJECTED, OWNER_ID, PageRequest.ofSize(10));
 
@@ -483,10 +483,10 @@ public class BookingServiceTest {
 
     @Test
     public void getAllBookingsOfOwnerTestDefault() {
-        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(TEST_OWNER));
-        when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(TEST_ITEM));
-        List<Long> itemIdsForOwner = Stream.of(TEST_ITEM).map(Item::getId).collect(Collectors.toList());
-        when(bookingRepository.findAllByItemIdIn(itemIdsForOwner)).thenReturn(List.of(TEST_BOOKING));
+        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
+        when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(testItem));
+        List<Long> itemIdsForOwner = Stream.of(testItem).map(Item::getId).collect(Collectors.toList());
+        when(bookingRepository.findAllByItemIdIn(itemIdsForOwner)).thenReturn(List.of(testBooking));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfOwner(State.ALL, OWNER_ID, PageRequest.ofSize(10));
 

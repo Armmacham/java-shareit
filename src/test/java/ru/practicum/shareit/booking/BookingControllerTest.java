@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class BookingControllerTest {
     public static final String X_SHARER_USER_ID = "X-Sharer-User-Id";
 
-    private final static Long USER_ID = 3L;
+    private static final Long USER_ID = 3L;
 
     @MockBean
     private BookingService bookingService;

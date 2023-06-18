@@ -19,7 +19,7 @@ public class UserServiceTest {
     private UserRepository userRepository;
 
     private static final long USER_ID = 10L;
-    private final User TEST_USER = new User(
+    private final User testUser = new User(
             USER_ID, "test", "test@mail.ru"
     );
 
@@ -32,7 +32,7 @@ public class UserServiceTest {
 
     @Test
     public void getUserById() {
-        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(TEST_USER));
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
 
         UserDTO userById = userService.getUserById(USER_ID);
 
@@ -55,7 +55,7 @@ public class UserServiceTest {
 
     @Test
     public void getAllTest() {
-        when(userRepository.findAll()).thenReturn(List.of(TEST_USER, TEST_USER));
+        when(userRepository.findAll()).thenReturn(List.of(testUser, testUser));
 
         Collection<UserDTO> all = userService.getAll();
         assertEquals(2, all.size());
@@ -63,11 +63,11 @@ public class UserServiceTest {
 
     @Test
     public void addUserTest() {
-        when(userRepository.save(any(User.class))).thenReturn(TEST_USER);
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
 
         UserDTO test = new UserDTO();
-        test.setName(TEST_USER.getName());
-        test.setEmail(TEST_USER.getEmail());
+        test.setName(testUser.getName());
+        test.setEmail(testUser.getEmail());
         UserDTO addedUser = userService.add(test);
 
         assertEquals(test.getName(), addedUser.getName());
@@ -80,11 +80,11 @@ public class UserServiceTest {
         test.setName("anotherName");
         test.setEmail("anotherEmail@mail.ru");
 
-        when(userRepository.findById(TEST_USER.getId())).thenReturn(Optional.of(TEST_USER));
+        when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class)))
-                .thenReturn(new User(TEST_USER.getId(), "anotherName", "anotherEmail@mail.ru"));
+                .thenReturn(new User(testUser.getId(), "anotherName", "anotherEmail@mail.ru"));
 
-        UserDTO patched = userService.patch(test, TEST_USER.getId());
+        UserDTO patched = userService.patch(test, testUser.getId());
 
         assertEquals("anotherName", patched.getName());
         assertEquals("anotherEmail@mail.ru", patched.getEmail());
