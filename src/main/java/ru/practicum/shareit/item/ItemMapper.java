@@ -1,9 +1,15 @@
 package ru.practicum.shareit.item;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import ru.practicum.shareit.user.UserMapper;
+
 
 @Component
+@RequiredArgsConstructor
 public class ItemMapper {
+
+    private final UserMapper userMapper;
 
     public ItemDTO toItemDTO(Item item) {
         return new ItemDTO(
@@ -11,8 +17,10 @@ public class ItemMapper {
                 item.getName(),
                 item.getDescription(),
                 item.getAvailable(),
-                item.getOwner(),
-                item.getRequest() != null ? item.getRequest() : null
+                userMapper.toUserDTO(item.getOwner()),
+                null,
+                null,
+                null
         );
     }
 
@@ -22,8 +30,19 @@ public class ItemMapper {
                 itemDTO.getName(),
                 itemDTO.getDescription(),
                 itemDTO.getAvailable(),
-                itemDTO.getOwner(),
-                itemDTO.getRequest() != null ? itemDTO.getRequest() : null
+                itemDTO.getOwner() != null ? userMapper.toUser(itemDTO.getOwner()) : null,
+                null
         );
+    }
+
+    public ItemCommentsDTO toItemCommentDto(Item item) {
+        ItemCommentsDTO itemCommentsDTO = new ItemCommentsDTO();
+        itemCommentsDTO.setId(item.getId());
+        itemCommentsDTO.setName(item.getName());
+        itemCommentsDTO.setDescription(item.getDescription());
+        itemCommentsDTO.setAvailable(item.getAvailable());
+        itemCommentsDTO.setOwner(userMapper.toUserDTO(item.getOwner()));
+        itemCommentsDTO.setRequest(null);
+        return itemCommentsDTO;
     }
 }

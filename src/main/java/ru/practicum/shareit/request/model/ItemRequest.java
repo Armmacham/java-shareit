@@ -1,17 +1,21 @@
 package ru.practicum.shareit.request.model;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import ru.practicum.shareit.user.User;
 
-import java.time.LocalDateTime;
+import javax.persistence.*;
 
-@Data
+@Getter
+@Setter
+@Entity
+@Table(name = "requests")
 public class ItemRequest {
+    @Id
     private int id;
 
     private String description;
 
-    private User requester;
-
-    private LocalDateTime created;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User requestor;
 }
