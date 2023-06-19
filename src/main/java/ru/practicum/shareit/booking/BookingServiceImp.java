@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.exceptions.IncorrectAvailableException;
+import ru.practicum.shareit.exceptions.IncorrectOwnerException;
 import ru.practicum.shareit.exceptions.IncorrectTimeException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemRepository;
@@ -38,7 +39,7 @@ public class BookingServiceImp implements BookingService {
                 new EntityNotFoundException(String.format("Вещь с id = %d не найдена", bookingInputDto.getItemId()))));
         booking.setBooker(getUserById(bookerId));
         if (booking.getItem().getOwner().getId() == bookerId) {
-            throw new EntityNotFoundException(String.format("Пользователь с id = %d является владельцем вещи с id = %d", bookerId, bookingInputDto.getItemId()));
+            throw new IncorrectOwnerException(String.format("Пользователь с id = %d является владельцем вещи с id = %d", bookerId, bookingInputDto.getItemId()));
         }
         if (!isIntervalsIntersect(booking)) {
             throw new IncorrectTimeException("Введённый период бронирования конфликтует с периодами существующих бронирований");

@@ -82,6 +82,17 @@ public class BookingControllerTest {
 
     @Test
     @SneakyThrows
+    public void getAllUserBookingsIncorrectState() {
+
+        when(bookingService.getAllBookingsOfCurrentUser(any(State.class), eq(USER_ID), any(PageRequest.class))).thenReturn(List.of(new BookingDTO()));
+
+        mvc.perform(get("/bookings?state=OLL")
+                        .header(X_SHARER_USER_ID, USER_ID))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @SneakyThrows
     public void getAllUserItemsBookings() {
         when(bookingService.getAllBookingsOfOwner(any(State.class), eq(USER_ID), any(PageRequest.class))).thenReturn(List.of(new BookingDTO()));
 

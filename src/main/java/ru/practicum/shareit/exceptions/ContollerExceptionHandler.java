@@ -11,11 +11,6 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ContollerExceptionHandler {
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseEntity<?> handleEntityAlreadyExistsException(final EntityAlreadyExistsException e) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)

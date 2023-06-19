@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.exceptions.IncorrectAvailableException;
+import ru.practicum.shareit.exceptions.IncorrectOwnerException;
 import ru.practicum.shareit.exceptions.IncorrectTimeException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemMapper;
@@ -185,7 +186,7 @@ public class BookingServiceTest {
         try {
             bookingService.addBooking(OWNER_ID, bookingInputDTO);
         } catch (Exception e) {
-            assertEquals(EntityNotFoundException.class, e.getClass());
+            assertEquals(IncorrectOwnerException.class, e.getClass());
         }
     }
 
