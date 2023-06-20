@@ -1,6 +1,5 @@
 package ru.practicum.shareit.user;
 
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
@@ -107,5 +106,4 @@ public class UserServiceTest {
 
         verify(userRepository).deleteById(10L);
     }
-
 }

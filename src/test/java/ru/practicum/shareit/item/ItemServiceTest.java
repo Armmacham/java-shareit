@@ -3,6 +3,7 @@ package ru.practicum.shareit.item;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.BookingDTO;
 import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.booking.Status;
@@ -157,5 +158,16 @@ public class ItemServiceTest {
 
         assertNotNull(hello);
         assertEquals(1, hello.size());
+    }
+
+    @Test
+    public void searchItemsByDescriptionWhenKeywordIsBlack() {
+        when(itemRepository.findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue("", Pageable.ofSize(10)))
+                .thenReturn(List.of());
+
+        Collection<ItemDTO> emptyListOfItems = itemService.searchItemsByDescription("", PageRequest.of(0, 10));
+
+        assertNotNull(emptyListOfItems);
+        assertEquals(0, emptyListOfItems.size());
     }
 }
