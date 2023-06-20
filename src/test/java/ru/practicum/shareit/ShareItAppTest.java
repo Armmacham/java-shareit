@@ -7,7 +7,7 @@ public class ShareItAppTest {
 
     @Test
     void testMain() {
-        Assertions.assertDoesNotThrow(ShareItApp :: new);
+        Assertions.assertDoesNotThrow(ShareItApp::new);
         Assertions.assertDoesNotThrow(() -> ShareItApp.main(new String[]{}));
     }
 }
