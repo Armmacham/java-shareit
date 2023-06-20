@@ -35,7 +35,7 @@ public class UserRepositoryTest {
     }
 
     @Test
-    public void deleteTest() {
+    public void deleteUserTest() {
         User user = new User();
         user.setEmail("test@test.ru");
         user.setName("name");
