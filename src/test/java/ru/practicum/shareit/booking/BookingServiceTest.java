@@ -73,7 +73,7 @@ public class BookingServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusHours(2)
         );
-           }
+    }
 
     @Test
     public void addBookingTest() {
@@ -90,6 +90,21 @@ public class BookingServiceTest {
         assertNotNull(bookingDTO);
         assertTrue(bookingDTO.getItem().getAvailable());
         assertEquals(BOOKING_ID, bookingDTO.getId());
+    }
+
+    @Test
+    public void addBookingIntervalNotValidatedTest() {
+        BookingInputDTO bookingInputDTO = new BookingInputDTO();
+        bookingInputDTO.setStart(LocalDateTime.now().minusHours(1));
+        bookingInputDTO.setEnd(bookingInputDTO.getStart().minusHours(1));
+
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testOwner));
+
+        try {
+            bookingService.addBooking(BOOKER_ID, bookingInputDTO);
+        } catch (Exception e) {
+            assertEquals(IncorrectTimeException.class, e.getClass());
+        }
     }
 
     @Test
@@ -299,23 +314,23 @@ public class BookingServiceTest {
         }
     }
 
-   @Test
-   public void getBookingInformationWhenBookingNotBelongToUser() {
-       when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(testBooking));
-       when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
-       when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
-       when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
-       testBooking.setStart(LocalDateTime.now().plusHours(1));
-       testBooking.setEnd(testBooking.getStart().plusHours(1));
+    @Test
+    public void getBookingInformationWhenBookingNotBelongToUser() {
+        when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.of(testBooking));
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
+        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+        testBooking.setStart(LocalDateTime.now().plusHours(1));
+        testBooking.setEnd(testBooking.getStart().plusHours(1));
 
-       try {
-           bookingService.getBookingInformation(BOOKING_ID, USER_ID);
-       } catch (Exception e) {
-           assertEquals(EntityNotFoundException.class, e.getClass());
-       }
-   }
+        try {
+            bookingService.getBookingInformation(BOOKING_ID, USER_ID);
+        } catch (Exception e) {
+            assertEquals(EntityNotFoundException.class, e.getClass());
+        }
+    }
 
-   @Test
+    @Test
     public void getAllBookingsOfCurrentUserWaitingTest() {
         when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
         when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
@@ -328,17 +343,17 @@ public class BookingServiceTest {
         assertEquals(1, bookingDTOList.size());
     }
 
-   @Test
+    @Test
     public void getAllBookingsOfCurrentUserCurrent() {
-       when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
-       when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.REJECTED, Status.WAITING, Status.CANCELED))).thenReturn(List.of(testBooking));
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
+        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.REJECTED, Status.WAITING, Status.CANCELED))).thenReturn(List.of(testBooking));
 
-       testBooking.setStart(LocalDateTime.now().minusHours(1));
-       testBooking.setEnd(testBooking.getStart().plusHours(2));
+        testBooking.setStart(LocalDateTime.now().minusHours(1));
+        testBooking.setEnd(testBooking.getStart().plusHours(2));
 
-       List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfCurrentUser(State.CURRENT, BOOKER_ID, PageRequest.ofSize(5));
+        List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfCurrentUser(State.CURRENT, BOOKER_ID, PageRequest.ofSize(5));
 
-       assertEquals(1, bookingDTOList.size());
+        assertEquals(1, bookingDTOList.size());
     }
 
     @Test

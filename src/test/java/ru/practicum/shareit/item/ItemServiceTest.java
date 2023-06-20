@@ -94,7 +94,6 @@ public class ItemServiceTest {
 
     @Test
     public void getAllItemsByUserIdTest() {
-
         when(userRepository.findById(eq(TEST_OWNER.getId()))).thenReturn(Optional.ofNullable(TEST_OWNER));
         when(itemRepository.findAllByOwnerId(eq(TEST_OWNER.getId()), any(PageRequest.class))).thenReturn(List.of(TEST_ITEM));
 
@@ -102,6 +101,17 @@ public class ItemServiceTest {
 
         assertNotNull(allItemsByUserId);
         assertEquals(1, allItemsByUserId.size());
+    }
+
+    @Test
+    public void getAllItemsByUserIdWhenUserNotFoundTest() {
+        when(userRepository.findById(eq(TEST_OWNER.getId()))).thenReturn(Optional.empty());
+
+        try {
+            itemService.getAllItemsByUserId(TEST_OWNER.getId(), Pageable.ofSize(10));
+        } catch (Exception e) {
+            assertEquals(EntityNotFoundException.class, e.getClass());
+        }
     }
 
     @Test
