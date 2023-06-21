@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Generated;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.booking.BookingHistoryDto;
 import ru.practicum.shareit.user.UserDTO;
@@ -12,6 +13,7 @@ import javax.validation.constraints.NotNull;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Generated
 public class ItemDTO {
 
     private Long id;

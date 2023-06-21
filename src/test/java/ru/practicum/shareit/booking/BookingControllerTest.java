@@ -10,6 +10,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.exceptions.EntityNotFoundException;
+import ru.practicum.shareit.exceptions.IncorrectAvailableException;
+import ru.practicum.shareit.exceptions.IncorrectOwnerException;
+import ru.practicum.shareit.exceptions.IncorrectTimeException;
 
 import java.util.List;
 
@@ -45,6 +49,69 @@ public class BookingControllerTest {
                         .header(X_SHARER_USER_ID, USER_ID)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @SneakyThrows
+    public void createTestWithIncorrectOwnerException() {
+
+        BookingInputDTO bookingInputDTO = new BookingInputDTO();
+
+        when(bookingService.addBooking(any(Long.class), any(BookingInputDTO.class)))
+                .thenThrow(IncorrectOwnerException.class);
+
+        mvc.perform(post("/bookings")
+                        .content(objectMapper.writeValueAsString(bookingInputDTO))
+                        .header(X_SHARER_USER_ID, USER_ID)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @SneakyThrows
+    public void createTestWithIncorrectAvailableException() {
+
+        BookingInputDTO bookingInputDTO = new BookingInputDTO();
+
+        when(bookingService.addBooking(any(Long.class), any(BookingInputDTO.class)))
+                .thenThrow(IncorrectAvailableException.class);
+
+        mvc.perform(post("/bookings")
+                        .content(objectMapper.writeValueAsString(bookingInputDTO))
+                        .header(X_SHARER_USER_ID, USER_ID)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @SneakyThrows
+    public void createTestWithEntityNotFoundException() {
+
+        BookingInputDTO bookingInputDTO = new BookingInputDTO();
+
+        when(bookingService.addBooking(any(Long.class), any(BookingInputDTO.class)))
+                .thenThrow(EntityNotFoundException.class);
+
+        mvc.perform(post("/bookings")
+                        .content(objectMapper.writeValueAsString(bookingInputDTO))
+                        .header(X_SHARER_USER_ID, USER_ID)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
+    }
+    @Test
+    @SneakyThrows
+    public void createTestWithIncorrectTimeException() {
+
+        BookingInputDTO bookingInputDTO = new BookingInputDTO();
+
+        when(bookingService.addBooking(any(Long.class), any(BookingInputDTO.class)))
+                .thenThrow(IncorrectTimeException.class);
+
+        mvc.perform(post("/bookings")
+                        .content(objectMapper.writeValueAsString(bookingInputDTO))
+                        .header(X_SHARER_USER_ID, USER_ID)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
     }
 
     @Test

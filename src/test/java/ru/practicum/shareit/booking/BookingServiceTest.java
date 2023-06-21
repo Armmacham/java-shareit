@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static ru.practicum.shareit.booking.Status.*;
@@ -102,6 +103,38 @@ public class BookingServiceTest {
 
         try {
             bookingService.addBooking(BOOKER_ID, bookingInputDTO);
+        } catch (Exception e) {
+            assertEquals(IncorrectTimeException.class, e.getClass());
+        }
+    }
+
+    @Test
+    public void addBookingWhenIntervalsIntersect() {
+        BookingInputDTO bookingInputDTO_2 = new BookingInputDTO();
+        bookingInputDTO_2.setItemId(ITEM_ID);
+        bookingInputDTO_2.setStart(LocalDateTime.now().plusHours(1));
+        bookingInputDTO_2.setEnd(bookingInputDTO_2.getStart().plusHours(2));
+
+        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.ofNullable(testItem));
+        when(userRepository.findById(OWNER_ID)).thenReturn(Optional.ofNullable(testOwner));
+        when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.ofNullable(testBooker));
+        when(bookingRepository.findById(BOOKING_ID)).thenReturn(Optional.ofNullable(testBooking));
+
+        Booking booking = new Booking(
+                BOOKING_ID,
+                testItem,
+                testBooker,
+                WAITING,
+                LocalDateTime.now().plusMinutes(10),
+                LocalDateTime.now().plusHours(2)
+        );
+
+        when(bookingRepository.findAllByItemIdAndStatusIn(any(Long.class), eq(List.of(Status.APPROVED, Status.WAITING))))
+                .thenReturn(List.of(booking));
+        //hen(bookingMapper.fromDto(bookingInputDTO_2)).thenReturn(testBooking_2);
+
+        try {
+            bookingService.addBooking(BOOKER_ID, bookingInputDTO_2);
         } catch (Exception e) {
             assertEquals(IncorrectTimeException.class, e.getClass());
         }
