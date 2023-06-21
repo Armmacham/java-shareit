@@ -110,10 +110,10 @@ public class BookingServiceTest {
 
     @Test
     public void addBookingWhenIntervalsIntersect() {
-        BookingInputDTO bookingInputDTO_2 = new BookingInputDTO();
-        bookingInputDTO_2.setItemId(ITEM_ID);
-        bookingInputDTO_2.setStart(LocalDateTime.now().plusHours(1));
-        bookingInputDTO_2.setEnd(bookingInputDTO_2.getStart().plusHours(2));
+        BookingInputDTO bookingInputDTO = new BookingInputDTO();
+        bookingInputDTO.setItemId(ITEM_ID);
+        bookingInputDTO.setStart(LocalDateTime.now().plusHours(1));
+        bookingInputDTO.setEnd(bookingInputDTO.getStart().plusHours(2));
 
         when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.ofNullable(testItem));
         when(userRepository.findById(OWNER_ID)).thenReturn(Optional.ofNullable(testOwner));
@@ -134,7 +134,7 @@ public class BookingServiceTest {
         //hen(bookingMapper.fromDto(bookingInputDTO_2)).thenReturn(testBooking_2);
 
         try {
-            bookingService.addBooking(BOOKER_ID, bookingInputDTO_2);
+            bookingService.addBooking(BOOKER_ID, bookingInputDTO);
         } catch (Exception e) {
             assertEquals(IncorrectTimeException.class, e.getClass());
         }

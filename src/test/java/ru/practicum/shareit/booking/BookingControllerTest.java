@@ -98,6 +98,7 @@ public class BookingControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError());
     }
+
     @Test
     @SneakyThrows
     public void createTestWithIncorrectTimeException() {
