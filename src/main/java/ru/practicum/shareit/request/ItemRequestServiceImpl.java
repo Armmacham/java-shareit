@@ -43,11 +43,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return itemRequestRepository.findAllByRequestorId(pageRequest, requesterId)
                 .stream()
                 .map(itemRequestMapper::toItemRequestDtoResponse)
-                .peek(requestDto -> requestDto.setItems(
-                        itemRepository.findAllByRequestId(requestDto.getId())
-                                .stream()
-                                .map(itemMapper::toItemDTO)
-                                .collect(Collectors.toList())))
                 .collect(Collectors.toList());
     }
 
@@ -59,11 +54,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return itemRequestRepository.findAllByRequestorIdNot(pageRequest, requesterId)
                 .stream()
                 .map(itemRequestMapper::toItemRequestDtoResponse)
-                .peek(requestDto -> requestDto.setItems(
-                        itemRepository.findAllByRequestId(requestDto.getId())
-                                .stream()
-                                .map(itemMapper::toItemDTO)
-                                .collect(Collectors.toList())))
                 .collect(Collectors.toList());
     }
 

@@ -38,7 +38,7 @@ public class ItemRequestServiceTest {
         userRepository = mock(UserRepository.class);
         itemRepository = mock(ItemRepository.class);
         ItemMapper itemMapper = new ItemMapper(new UserMapper());
-        ItemRequestMapper itemRequestMapper = new ItemRequestMapper();
+        ItemRequestMapper itemRequestMapper = new ItemRequestMapper(itemMapper);
         itemRequestService = new ItemRequestServiceImpl(itemRequestRepository, userRepository, itemRepository,
                 itemMapper, itemRequestMapper);
 
@@ -98,7 +98,7 @@ public class ItemRequestServiceTest {
         when(userRepository.existsById(USER_ID)).thenReturn(true);
         when(itemRequestRepository.findAllByRequestorId(any(PageRequest.class), eq(USER_ID)))
                 .thenReturn(List.of(ITEM_REQUEST));
-        when(itemRepository.findAllByRequestId(ITEM_REQUEST_ID)).thenReturn(List.of());
+       // when(itemRepository.findAllByRequestId(ITEM_REQUEST_ID)).thenReturn(List.of());
 
         List<ItemRequestDtoResponse> response = itemRequestService
                 .getPrivateRequests(USER_ID, PageRequest.of(0, 10));
@@ -109,7 +109,7 @@ public class ItemRequestServiceTest {
 
         verify(userRepository).existsById(USER_ID);
         verify(itemRequestRepository).findAllByRequestorId(any(PageRequest.class), eq(USER_ID));
-        verify(itemRepository).findAllByRequestId(ITEM_REQUEST_ID);
+//        verify(itemRepository).findAllByRequestId(ITEM_REQUEST_ID);
     }
 
     @Test
@@ -133,7 +133,7 @@ public class ItemRequestServiceTest {
         when(userRepository.existsById(USER_ID)).thenReturn(true);
         when(itemRequestRepository.findAllByRequestorIdNot(any(PageRequest.class), eq(USER_ID)))
                 .thenReturn(List.of(ITEM_REQUEST));
-        when(itemRepository.findAllByRequestId(ITEM_REQUEST_ID)).thenReturn(List.of());
+       // when(itemRepository.findAllByRequestId(ITEM_REQUEST_ID)).thenReturn(List.of());
 
         List<ItemRequestDtoResponse> response = itemRequestService
                 .getOtherRequests(USER_ID, PageRequest.of(0, 10));
@@ -144,7 +144,7 @@ public class ItemRequestServiceTest {
 
         verify(userRepository).existsById(USER_ID);
         verify(itemRequestRepository).findAllByRequestorIdNot(any(PageRequest.class), eq(USER_ID));
-        verify(itemRepository).findAllByRequestId(ITEM_REQUEST_ID);
+        //verify(itemRepository).findAllByRequestId(ITEM_REQUEST_ID);
     }
 
     @Test

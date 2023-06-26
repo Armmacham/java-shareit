@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.user.User;
@@ -32,7 +33,7 @@ public class BookingRepositoryTest {
         User owner = userRepository.save(new User(null, "owner", "owner@gmail.com"));
         Item item = itemRepository.save(new Item(null, "otvertka", "description", true, owner, null));
 
-        Booking booking = bookingRepository.save(new Booking(
+        bookingRepository.save(new Booking(
                 null,
                 item,
                 booker,
@@ -43,7 +44,7 @@ public class BookingRepositoryTest {
 
     @Test
     public void findAllByBookerIdTest() {
-        List<Booking> allByBookerId = bookingRepository.findAllByBookerId(booker.getId());
+        List<Booking> allByBookerId = bookingRepository.findAllByBookerId(booker.getId(), Pageable.unpaged());
         assertNotNull(allByBookerId);
         assertEquals(1, allByBookerId.size());
     }

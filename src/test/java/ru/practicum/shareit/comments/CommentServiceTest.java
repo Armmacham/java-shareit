@@ -2,6 +2,7 @@ package ru.practicum.shareit.comments;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
@@ -82,7 +83,7 @@ public class CommentServiceTest {
         when(userRepository.findById(COMMENTATOR_ID)).thenReturn(Optional.of(TEST_COMMENTATOR));
         when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(testItem));
         when(commentRepository.save(any(Comment.class))).thenReturn(new Comment(10L, "comment", testItem, TEST_COMMENTATOR, LocalDateTime.now()));
-        when(bookingRepository.findAllByBookerId(COMMENTATOR_ID)).thenReturn(List.of(testBooking));
+        when(bookingRepository.findAllByBookerId(COMMENTATOR_ID, Pageable.unpaged())).thenReturn(List.of(testBooking));
 
         testBooking.setStart(LocalDateTime.now().minusHours(2));
         testBooking.setEnd(LocalDateTime.now().minusHours(1));
@@ -135,7 +136,7 @@ public class CommentServiceTest {
     public void addCommentTestCommentatorIsOwner() {
         when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(testItem));
         when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(TEST_OWNER));
-        when(bookingRepository.findAllByBookerId(BOOKING_ID)).thenReturn(List.of(testBooking));
+        when(bookingRepository.findAllByBookerId(BOOKING_ID, Pageable.unpaged())).thenReturn(List.of(testBooking));
 
         testBooking.setStart(LocalDateTime.now().minusHours(2));
         testBooking.setEnd(LocalDateTime.now().minusHours(1));

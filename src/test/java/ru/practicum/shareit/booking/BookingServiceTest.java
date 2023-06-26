@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.exceptions.IncorrectAvailableException;
 import ru.practicum.shareit.exceptions.IncorrectOwnerException;
@@ -131,7 +132,6 @@ public class BookingServiceTest {
 
         when(bookingRepository.findAllByItemIdAndStatusIn(any(Long.class), eq(List.of(Status.APPROVED, Status.WAITING))))
                 .thenReturn(List.of(booking));
-        //hen(bookingMapper.fromDto(bookingInputDTO_2)).thenReturn(testBooking_2);
 
         try {
             bookingService.addBooking(BOOKER_ID, bookingInputDTO);
@@ -367,7 +367,7 @@ public class BookingServiceTest {
     public void getAllBookingsOfCurrentUserWaitingTest() {
         when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
         when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
-        when(bookingRepository.findByBookerIdAndStatusIn(OWNER_ID, List.of(WAITING))).thenReturn(List.of(testBooking));
+        when(bookingRepository.findByBookerIdAndStatusIn(OWNER_ID, List.of(WAITING), PageRequest.ofSize(5))).thenReturn(List.of(testBooking));
         testBooking.setStart(LocalDateTime.now().plusHours(1));
         testBooking.setEnd(testBooking.getStart().plusHours(1));
 
@@ -379,7 +379,7 @@ public class BookingServiceTest {
     @Test
     public void getAllBookingsOfCurrentUserCurrent() {
         when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
-        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.REJECTED, Status.WAITING, Status.CANCELED))).thenReturn(List.of(testBooking));
+        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.REJECTED, Status.WAITING, Status.CANCELED), PageRequest.ofSize(5))).thenReturn(List.of(testBooking));
 
         testBooking.setStart(LocalDateTime.now().minusHours(1));
         testBooking.setEnd(testBooking.getStart().plusHours(2));
@@ -392,7 +392,7 @@ public class BookingServiceTest {
     @Test
     public void getAllBookingsOfCurrentUserTestFutureBookings() {
         when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
-        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.WAITING))).thenReturn(List.of(testBooking));
+        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.WAITING), PageRequest.ofSize(5))).thenReturn(List.of(testBooking));
 
         testBooking.setStart(LocalDateTime.now().plusHours(1));
         testBooking.setEnd(testBooking.getStart().plusHours(1));
@@ -405,7 +405,7 @@ public class BookingServiceTest {
     @Test
     public void getAllBookingsOfCurrentUserTestPastBookings() {
         when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
-        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED))).thenReturn(List.of(testBooking));
+        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED), PageRequest.ofSize(5))).thenReturn(List.of(testBooking));
 
         testBooking.setStatus(APPROVED);
         testBooking.setStart(LocalDateTime.now().minusHours(2));
@@ -419,7 +419,7 @@ public class BookingServiceTest {
     @Test
     public void getAllBookingsOfCurrentUserTestRejectedBookings() {
         when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
-        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.REJECTED, Status.CANCELED))).thenReturn(List.of(testBooking));
+        when(bookingRepository.findByBookerIdAndStatusIn(BOOKER_ID, List.of(Status.REJECTED, Status.CANCELED), PageRequest.ofSize(5))).thenReturn(List.of(testBooking));
 
         testBooking.setStatus(CANCELED);
         testBooking.setStart(LocalDateTime.now().minusHours(2));
@@ -433,7 +433,7 @@ public class BookingServiceTest {
     @Test
     public void getAllBookingsOfCurrentUserTestDefault() {
         when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
-        when(bookingRepository.findAllByBookerId(BOOKER_ID)).thenReturn(List.of(testBooking));
+        when(bookingRepository.findAllByBookerId(BOOKER_ID, PageRequest.ofSize(5))).thenReturn(List.of(testBooking));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfCurrentUser(State.ALL, BOOKER_ID, PageRequest.ofSize(5));
 
@@ -443,7 +443,7 @@ public class BookingServiceTest {
     @Test
     public void getAllBookingsOfItemsIdsTest() {
         when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(testItem));
-        when(bookingRepository.findAllByItemIdInAndStatusIn(List.of(ITEM_ID), List.of(Status.APPROVED, Status.WAITING))).thenReturn(List.of(testBooking));
+        when(bookingRepository.findAllByItemIdInAndStatusIn(List.of(ITEM_ID), List.of(Status.APPROVED, Status.WAITING), Pageable.unpaged())).thenReturn(List.of(testBooking));
         when(userRepository.findById(BOOKER_ID)).thenReturn(Optional.of(testBooker));
         when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
         testBooking.setStart(LocalDateTime.now().plusHours(1));
@@ -459,7 +459,7 @@ public class BookingServiceTest {
         when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
         when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(testItem));
         List<Long> itemIdsForOwner = Stream.of(testItem).map(Item::getId).collect(Collectors.toList());
-        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.WAITING))).thenReturn(List.of(testBooking));
+        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.WAITING), PageRequest.ofSize(10))).thenReturn(List.of(testBooking));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfOwner(State.WAITING, OWNER_ID, PageRequest.ofSize(10));
 
@@ -471,7 +471,7 @@ public class BookingServiceTest {
         when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
         when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(testItem));
         List<Long> itemIdsForOwner = Stream.of(testItem).map(Item::getId).collect(Collectors.toList());
-        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED))).thenReturn(List.of(testBooking));
+        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED), PageRequest.ofSize(10))).thenReturn(List.of(testBooking));
 
         testBooking.setStatus(APPROVED);
         testBooking.setStart(LocalDateTime.now().minusHours(1));
@@ -487,7 +487,7 @@ public class BookingServiceTest {
         when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
         when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(testItem));
         List<Long> itemIdsForOwner = Stream.of(testItem).map(Item::getId).collect(Collectors.toList());
-        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.WAITING))).thenReturn(List.of(testBooking));
+        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.WAITING), PageRequest.ofSize(10))).thenReturn(List.of(testBooking));
 
         testBooking.setStatus(APPROVED);
         testBooking.setStart(LocalDateTime.now().plusHours(1));
@@ -503,7 +503,7 @@ public class BookingServiceTest {
         when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
         when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(testItem));
         List<Long> itemIdsForOwner = Stream.of(testItem).map(Item::getId).collect(Collectors.toList());
-        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED))).thenReturn(List.of(testBooking));
+        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(APPROVED, REJECTED, CANCELED), PageRequest.ofSize(10))).thenReturn(List.of(testBooking));
 
         testBooking.setStatus(CANCELED);
         testBooking.setStart(LocalDateTime.now().minusHours(2));
@@ -519,7 +519,7 @@ public class BookingServiceTest {
         when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
         when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(testItem));
         List<Long> itemIdsForOwner = Stream.of(testItem).map(Item::getId).collect(Collectors.toList());
-        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.REJECTED, Status.CANCELED))).thenReturn(List.of(testBooking));
+        when(bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.REJECTED, Status.CANCELED), PageRequest.ofSize(10))).thenReturn(List.of(testBooking));
 
         testBooking.setStatus(REJECTED);
         testBooking.setStart(LocalDateTime.now().minusHours(2));
@@ -535,7 +535,7 @@ public class BookingServiceTest {
         when(userRepository.findById(OWNER_ID)).thenReturn(Optional.of(testOwner));
         when(itemRepository.findAllByOwnerId(OWNER_ID)).thenReturn(List.of(testItem));
         List<Long> itemIdsForOwner = Stream.of(testItem).map(Item::getId).collect(Collectors.toList());
-        when(bookingRepository.findAllByItemIdIn(itemIdsForOwner)).thenReturn(List.of(testBooking));
+        when(bookingRepository.findAllByItemIdIn(itemIdsForOwner, PageRequest.ofSize(10))).thenReturn(List.of(testBooking));
 
         List<BookingDTO> bookingDTOList = bookingService.getAllBookingsOfOwner(State.ALL, OWNER_ID, PageRequest.ofSize(10));
 

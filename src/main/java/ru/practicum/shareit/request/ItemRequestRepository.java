@@ -12,6 +12,5 @@ public interface ItemRequestRepository extends PagingAndSortingRepository<ItemRe
 
     List<ItemRequest> findAllByRequestorIdNot(Pageable pageable, Long requesterId);
 
-    @Override
     Optional<ItemRequest> findById(Long id);
 }

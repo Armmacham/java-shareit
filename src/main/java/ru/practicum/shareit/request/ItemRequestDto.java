@@ -1,15 +1,13 @@
 package ru.practicum.shareit.request;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.Generated;
+import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 @Builder
-@Data
+@Getter
 @Jacksonized
 @Generated
 public class ItemRequestDto {

@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
@@ -56,10 +57,8 @@ public class BookingServiceImp implements BookingService {
         List<BookingDTO> listOfUpcomingBookings = getAllFutureBookingsOfItem(itemId);
         return listOfUpcomingBookings.isEmpty() || listOfUpcomingBookings
                 .stream()
-                .noneMatch(e -> e.getStart().isBefore(newBooking.getStart()) && e.getEnd().isAfter(newBooking.getEnd())
-                        || e.getStart().isAfter(newBooking.getStart()) && e.getEnd().isBefore(newBooking.getEnd())
-                        || e.getStart().isAfter(newBooking.getStart()) && e.getStart().isBefore(newBooking.getEnd()) && e.getEnd().isAfter(newBooking.getEnd())
-                        || e.getStart().isBefore(newBooking.getStart()) && e.getEnd().isAfter(newBooking.getStart()) && e.getEnd().isBefore(newBooking.getEnd()));
+                .anyMatch(e -> e.getStart().isAfter(newBooking.getEnd())
+                        || e.getEnd().isBefore(newBooking.getStart()));
     }
 
     private void validateDate(BookingInputDTO bookingInputDto) {
@@ -118,52 +117,40 @@ public class BookingServiceImp implements BookingService {
         getUserById(userId);
         switch (state) {
             case CURRENT:
-                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.REJECTED, Status.WAITING, Status.CANCELED))
+                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.REJECTED, Status.WAITING, Status.CANCELED), pageRequest)
                         .stream().filter(e -> e.getStart().isBefore(LocalDateTime.now()) && e.getEnd().isAfter(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
                         .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
-                        .skip(pageRequest.getOffset())
-                        .limit(pageRequest.getPageSize())
                         .collect(Collectors.toList());
             case FUTURE:
-                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.WAITING))
+                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.WAITING), pageRequest)
                         .stream().filter(e -> e.getStart().isAfter(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
                         .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
-                        .skip(pageRequest.getOffset())
-                        .limit(pageRequest.getPageSize())
                         .collect(Collectors.toList());
             case PAST:
-                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED))
+                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED), pageRequest)
                         .stream().filter(e -> e.getEnd().isBefore(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
                         .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
-                        .skip(pageRequest.getOffset())
-                        .limit(pageRequest.getPageSize())
                         .collect(Collectors.toList());
             case REJECTED:
-                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.REJECTED, Status.CANCELED))
+                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.REJECTED, Status.CANCELED), pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
                         .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
-                        .skip(pageRequest.getOffset())
-                        .limit(pageRequest.getPageSize())
                         .collect(Collectors.toList());
             case WAITING:
-                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.WAITING))
+                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.WAITING), pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
                         .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
-                        .skip(pageRequest.getOffset())
-                        .limit(pageRequest.getPageSize())
                         .collect(Collectors.toList());
             default:
-                return bookingRepository.findAllByBookerId(userId)
+                return bookingRepository.findAllByBookerId(userId, pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
                         .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
-                        .skip(pageRequest.getOffset())
-                        .limit(pageRequest.getPageSize())
                         .collect(Collectors.toList());
         }
     }
@@ -177,7 +164,7 @@ public class BookingServiceImp implements BookingService {
     }
 
     public List<BookingDTO> getAllBookingsOfItemsIds(List<Long> ids) {
-        return bookingRepository.findAllByItemIdInAndStatusIn(ids, List.of(Status.APPROVED, Status.WAITING))
+        return bookingRepository.findAllByItemIdInAndStatusIn(ids, List.of(Status.APPROVED, Status.WAITING), Pageable.unpaged())
                 .stream().map(bookingMapper::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -189,52 +176,40 @@ public class BookingServiceImp implements BookingService {
         List<Long> itemIdsForOwner = allByOwnerId.stream().map(Item::getId).collect(Collectors.toList());
         switch (state) {
             case CURRENT:
-                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED))
+                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED), pageRequest)
                         .stream().filter(e -> e.getStart().isBefore(LocalDateTime.now()) && e.getEnd().isAfter(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
                         .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
-                        .skip(pageRequest.getOffset())
-                        .limit(pageRequest.getPageSize())
                         .collect(Collectors.toList());
             case FUTURE:
-                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.WAITING))
+                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.WAITING), pageRequest)
                         .stream().filter(e -> e.getStart().isAfter(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
                         .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
-                        .skip(pageRequest.getOffset())
-                        .limit(pageRequest.getPageSize())
                         .collect(Collectors.toList());
             case PAST:
-                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED))
+                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED), pageRequest)
                         .stream().filter(e -> e.getEnd().isBefore(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
                         .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
-                        .skip(pageRequest.getOffset())
-                        .limit(pageRequest.getPageSize())
                         .collect(Collectors.toList());
             case REJECTED:
-                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.REJECTED, Status.CANCELED))
+                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.REJECTED, Status.CANCELED), pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
                         .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
-                        .skip(pageRequest.getOffset())
-                        .limit(pageRequest.getPageSize())
                         .collect(Collectors.toList());
             case WAITING:
-                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.WAITING))
+                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.WAITING), pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
                         .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
-                        .skip(pageRequest.getOffset())
-                        .limit(pageRequest.getPageSize())
                         .collect(Collectors.toList());
             default:
-                return bookingRepository.findAllByItemIdIn(itemIdsForOwner)
+                return bookingRepository.findAllByItemIdIn(itemIdsForOwner, pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
                         .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
-                        .skip(pageRequest.getOffset())
-                        .limit(pageRequest.getPageSize())
                         .collect(Collectors.toList());
         }
     }

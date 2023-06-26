@@ -1,6 +1,7 @@
 package ru.practicum.shareit.comments;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
@@ -36,7 +37,7 @@ public class CommentServiceImpl implements CommentService {
         if (item.getOwner().getId().equals(userId)) {
             throw new IncorrectAvailableException("Владелец не может оставить отзыв на собственную вещь");
         }
-        List<Booking> allByBookerId = bookingRepository.findAllByBookerId(userId);
+        List<Booking> allByBookerId = bookingRepository.findAllByBookerId(userId, Pageable.unpaged());
         allByBookerId.stream()
                 .filter(e -> Objects.equals(e.getItem().getId(), itemId) &&
                         e.getStatus().equals(Status.APPROVED) &&
