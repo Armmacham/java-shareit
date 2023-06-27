@@ -3,12 +3,10 @@ package ru.practicum.shareit.request;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -30,8 +28,4 @@ public class ItemRequest {
 
     @Column
     private LocalDateTime created;
-
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "request_id")
-    private Set<Item> items;
 }

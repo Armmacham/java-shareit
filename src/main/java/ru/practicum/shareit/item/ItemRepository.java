@@ -20,4 +20,6 @@ public interface ItemRepository extends PagingAndSortingRepository<Item, Long> {
     List<Item> findAllByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue(String description, Pageable pageable);
 
     List<Item> findAllByRequestId(Long id);
+
+    List<Item> findAllByRequestIdIn(List<Long> ids);
 }

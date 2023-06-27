@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
+import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.user.User;
@@ -12,6 +13,7 @@ import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,10 +42,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         if (!userRepository.existsById(requesterId)) {
             throw new EntityNotFoundException(String.format("Пользователь с id=%d не найден", requesterId));
         }
-        return itemRequestRepository.findAllByRequestorId(pageRequest, requesterId)
-                .stream()
-                .map(itemRequestMapper::toItemRequestDtoResponse)
-                .collect(Collectors.toList());
+
+        return setItemsAndMapToDto(itemRequestRepository.findAllByRequestorId(pageRequest, requesterId));
     }
 
     @Override
@@ -51,9 +51,21 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         if (!userRepository.existsById(requesterId)) {
             throw new EntityNotFoundException(String.format("Пользователь с id=%d не найден", requesterId));
         }
-        return itemRequestRepository.findAllByRequestorIdNot(pageRequest, requesterId)
+
+        return setItemsAndMapToDto(itemRequestRepository.findAllByRequestorIdNot(pageRequest, requesterId));
+    }
+
+    private List<ItemRequestDtoResponse> setItemsAndMapToDto(List<ItemRequest> items) {
+        List<Item> allByRequestIdIn = itemRepository.findAllByRequestIdIn(items.stream().map(ItemRequest::getId).collect(Collectors.toList()));
+        return items
                 .stream()
                 .map(itemRequestMapper::toItemRequestDtoResponse)
+                .peek(e -> e.setItems(
+                        allByRequestIdIn.stream()
+                                .filter(item -> Objects.equals(item.getRequest().getId(), e.getId()))
+                                .map(itemMapper::toItemDTO)
+                                .collect(Collectors.toList())
+                ))
                 .collect(Collectors.toList());
     }
 

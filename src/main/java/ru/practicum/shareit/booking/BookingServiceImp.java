@@ -120,37 +120,31 @@ public class BookingServiceImp implements BookingService {
                 return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.REJECTED, Status.WAITING, Status.CANCELED), pageRequest)
                         .stream().filter(e -> e.getStart().isBefore(LocalDateTime.now()) && e.getEnd().isAfter(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case FUTURE:
                 return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.WAITING), pageRequest)
                         .stream().filter(e -> e.getStart().isAfter(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case PAST:
                 return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED), pageRequest)
                         .stream().filter(e -> e.getEnd().isBefore(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case REJECTED:
                 return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.REJECTED, Status.CANCELED), pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case WAITING:
                 return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.WAITING), pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             default:
                 return bookingRepository.findAllByBookerId(userId, pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
         }
     }
@@ -179,37 +173,31 @@ public class BookingServiceImp implements BookingService {
                 return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED), pageRequest)
                         .stream().filter(e -> e.getStart().isBefore(LocalDateTime.now()) && e.getEnd().isAfter(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case FUTURE:
                 return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.WAITING), pageRequest)
                         .stream().filter(e -> e.getStart().isAfter(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case PAST:
                 return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED), pageRequest)
                         .stream().filter(e -> e.getEnd().isBefore(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case REJECTED:
                 return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.REJECTED, Status.CANCELED), pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case WAITING:
                 return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.WAITING), pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             default:
                 return bookingRepository.findAllByItemIdIn(itemIdsForOwner, pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
         }
     }
