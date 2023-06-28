@@ -1,10 +1,13 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.exceptions.IncorrectAvailableException;
+import ru.practicum.shareit.exceptions.IncorrectOwnerException;
 import ru.practicum.shareit.exceptions.IncorrectTimeException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemRepository;
@@ -37,7 +40,7 @@ public class BookingServiceImp implements BookingService {
                 new EntityNotFoundException(String.format("Вещь с id = %d не найдена", bookingInputDto.getItemId()))));
         booking.setBooker(getUserById(bookerId));
         if (booking.getItem().getOwner().getId() == bookerId) {
-            throw new EntityNotFoundException(String.format("Вещь с id = %d не найдена", bookingInputDto.getItemId()));
+            throw new IncorrectOwnerException(String.format("Пользователь с id = %d является владельцем вещи с id = %d", bookerId, bookingInputDto.getItemId()));
         }
         if (!isIntervalsIntersect(booking)) {
             throw new IncorrectTimeException("Введённый период бронирования конфликтует с периодами существующих бронирований");
@@ -52,15 +55,10 @@ public class BookingServiceImp implements BookingService {
     private boolean isIntervalsIntersect(Booking newBooking) {
         long itemId = newBooking.getItem().getId();
         List<BookingDTO> listOfUpcomingBookings = getAllFutureBookingsOfItem(itemId);
-        if (!listOfUpcomingBookings.isEmpty() && listOfUpcomingBookings
+        return listOfUpcomingBookings.isEmpty() || listOfUpcomingBookings
                 .stream()
-                .anyMatch(e -> e.getStart().isBefore(newBooking.getStart()) && e.getEnd().isAfter(newBooking.getEnd())
-                        || e.getStart().isAfter(newBooking.getStart()) && e.getEnd().isBefore(newBooking.getEnd())
-                        || e.getStart().isAfter(newBooking.getStart()) && e.getStart().isBefore(newBooking.getEnd()) && e.getEnd().isAfter(newBooking.getEnd())
-                        || e.getStart().isBefore(newBooking.getStart()) && e.getEnd().isAfter(newBooking.getStart()) && e.getEnd().isBefore(newBooking.getEnd()))) {
-            return false;
-        }
-        return true;
+                .anyMatch(e -> e.getStart().isAfter(newBooking.getEnd())
+                        || e.getEnd().isBefore(newBooking.getStart()));
     }
 
     private void validateDate(BookingInputDTO bookingInputDto) {
@@ -107,7 +105,6 @@ public class BookingServiceImp implements BookingService {
             return bookingDTO;
         }
         throw new EntityNotFoundException(String.format("Бронирование с id = %d не пренадлежит пользователю с id = %d", bookingId, userId));
-
     }
 
     private User getUserById(long userId) {
@@ -116,44 +113,38 @@ public class BookingServiceImp implements BookingService {
     }
 
     @Override
-    public List<BookingDTO> getAllBookingsOfCurrentUser(State state, long userId) {
+    public List<BookingDTO> getAllBookingsOfCurrentUser(State state, long userId, PageRequest pageRequest) {
         getUserById(userId);
         switch (state) {
             case CURRENT:
-                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.REJECTED, Status.WAITING, Status.CANCELED))
+                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.REJECTED, Status.WAITING, Status.CANCELED), pageRequest)
                         .stream().filter(e -> e.getStart().isBefore(LocalDateTime.now()) && e.getEnd().isAfter(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case FUTURE:
-                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.WAITING))
+                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.WAITING), pageRequest)
                         .stream().filter(e -> e.getStart().isAfter(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case PAST:
-                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED))
+                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED), pageRequest)
                         .stream().filter(e -> e.getEnd().isBefore(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case REJECTED:
-                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.REJECTED, Status.CANCELED))
+                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.REJECTED, Status.CANCELED), pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case WAITING:
-                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.WAITING))
+                return bookingRepository.findByBookerIdAndStatusIn(userId, List.of(Status.WAITING), pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             default:
-                return bookingRepository.findAllByBookerId(userId)
+                return bookingRepository.findAllByBookerId(userId, pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
         }
     }
@@ -167,52 +158,46 @@ public class BookingServiceImp implements BookingService {
     }
 
     public List<BookingDTO> getAllBookingsOfItemsIds(List<Long> ids) {
-        return bookingRepository.findAllByItemIdInAndStatusIn(ids, List.of(Status.APPROVED, Status.WAITING))
+        return bookingRepository.findAllByItemIdInAndStatusIn(ids, List.of(Status.APPROVED, Status.WAITING), Pageable.unpaged())
                 .stream().map(bookingMapper::fromEntity)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<BookingDTO> getAllBookingsOfOwner(State state, long ownerId) {
+    public List<BookingDTO> getAllBookingsOfOwner(State state, long ownerId, PageRequest pageRequest) {
         getUserById(ownerId);
         List<Item> allByOwnerId = itemRepository.findAllByOwnerId(ownerId);
         List<Long> itemIdsForOwner = allByOwnerId.stream().map(Item::getId).collect(Collectors.toList());
         switch (state) {
             case CURRENT:
-                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED))
+                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED), pageRequest)
                         .stream().filter(e -> e.getStart().isBefore(LocalDateTime.now()) && e.getEnd().isAfter(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case FUTURE:
-                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.WAITING))
+                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.WAITING), pageRequest)
                         .stream().filter(e -> e.getStart().isAfter(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case PAST:
-                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED))
+                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.APPROVED, Status.REJECTED, Status.CANCELED), pageRequest)
                         .stream().filter(e -> e.getEnd().isBefore(LocalDateTime.now()))
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case REJECTED:
-                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.REJECTED, Status.CANCELED))
+                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.REJECTED, Status.CANCELED), pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             case WAITING:
-                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.WAITING))
+                return bookingRepository.findAllByItemIdInAndStatusIn(itemIdsForOwner, List.of(Status.WAITING), pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
             default:
-                return bookingRepository.findAllByItemIdIn(itemIdsForOwner)
+                return bookingRepository.findAllByItemIdIn(itemIdsForOwner, pageRequest)
                         .stream()
                         .map(bookingMapper::fromEntity)
-                        .sorted(Comparator.comparing(BookingDTO::getStart).reversed())
                         .collect(Collectors.toList());
         }
     }
